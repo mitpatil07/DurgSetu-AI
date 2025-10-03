@@ -1,0 +1,27 @@
+export const fortsData = [
+    {
+      id: 1,
+      name: "Shivneri Fort",
+      location: "Junnar, Pune",
+      coordinates: { lat: 19.2183, lng: 73.8478 },
+      temperature: 26,
+      humidity: 68,
+      windSpeed: 8,
+      visibility: 10,
+      condition: "Clear",
+      riskLevel: "Low",
+      prediction: "Optimal monitoring conditions",
+      aiConfidence: 98,
+      sensorStatus: "active",
+      batteryLevel: 92,
+      signalStrength: 5,
+      lastUpdated: "1 min ago",
+      historicalRisk: [1, 1, 2, 1, 1],
+      weatherTrend: "stable",
+      cameraStatus: "online",
+      structuralHealth: 98,
+      visitorCount: 156,
+      securityLevel: "normal",
+      maintenance: "good"
+    },
+  ];
