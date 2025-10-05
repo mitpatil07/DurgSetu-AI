@@ -1,12 +1,19 @@
-import React from 'react'
-import Maincomponents from './components/main_components'
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MainDashboard from './components/Main_Dashboard';
+import Stage1Dashboard from './components/Stage_1Dash_Component';
+import Stage2Dashboard from './components/Stage_2Dash_Component';
 
-function App() {
+const App = () => {
   return (
-    <>
-    <Maincomponents />
-    </>
-  )
-}
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainDashboard />} />
+        <Route path="/stage1" element={<Stage1Dashboard />} />
+        <Route path="/stage2" element={<Stage2Dashboard />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
 
-export default App
+export default App;
