@@ -123,7 +123,7 @@ const RealtimeFortDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-red-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">Loading real-time data...</p>
+          <p className="text-gray-700 font-medium">Loading data...</p>
         </div>
       </div>
     );
@@ -139,9 +139,7 @@ const RealtimeFortDashboard = () => {
           <div className="bg-orange-50 p-4 rounded-xl">
             <p className="text-sm font-semibold mb-2">To get REAL-TIME data:</p>
             <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
-              <li>Get free API key: <a href="https://openweathermap.org/api" target="_blank" className="text-orange-600 hover:underline">openweathermap.org</a></li>
-              <li>Replace 'YOUR_API_KEY_HERE' in code</li>
-              <li>Save and refresh</li>
+              <h>Check Your Internet Connection</h>
             </ol>
           </div>
         </div>
