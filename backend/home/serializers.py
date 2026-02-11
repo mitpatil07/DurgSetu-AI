@@ -1,4 +1,4 @@
-# api/serializers.py or home/serializers.py (whichever you're using)
+# api/serializers.py
 from rest_framework import serializers
 from .models import Fort, FortImage, StructuralAnalysis
 
@@ -23,6 +23,7 @@ class StructuralAnalysisSerializer(serializers.ModelSerializer):
             'cnn_distance', 'ssim_score', 'risk_level', 'risk_score',
             'changes_detected', 'total_area_affected', 'annotated_image',
             'analysis_results', 'analysis_date',
+            'is_verified', 'is_false_positive', 'user_notes', 'verified_at', 'verified_by',
             'previous_image_url', 'current_image_url', 'annotated_image_url',
             'risk_assessment', 'recommendations'
         ]

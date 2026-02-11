@@ -11,32 +11,36 @@ const useFortData = () => {
   useEffect(() => {
     const fetchFortData = async () => {
       try {
-        // Shivneri Fort coordinates
-        const lat = 19.2183;
-        const lon = 73.8478;
+        // Default to Shivneri Fort if no location found
+        let lat = 19.2183;
+        let lon = 73.8478;
+        let locationName = "Shivneri Fort";
+
+        // Attempt to get user's location
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+          });
+          lat = position.coords.latitude;
+          lon = position.coords.longitude;
+          locationName = "Current Location";
+        } catch (e) {
+          console.log("Using default location");
+        }
 
         // Replace with your actual OpenWeatherMap API key from https://openweathermap.org/api
         const API_KEY = 'c48e71bd51105312e7a19c1b04ceb77e';
-        
-        // Set to false to use REAL data
-        const USE_MOCK_DATA = false;
 
-        let weatherData;
+        // Fetch REAL weather data from OpenWeatherMap API
+        const weatherResponse = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+        );
 
-        if (USE_MOCK_DATA) {
-          throw new Error('Mock data disabled. Please add your OpenWeatherMap API key to get real-time data.');
-        } else {
-          // Fetch REAL weather data from OpenWeatherMap API
-          const weatherResponse = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-          );
-          
-          if (!weatherResponse.ok) {
-            throw new Error('Weather data fetch failed. Please check your API key.');
-          }
-
-          weatherData = await weatherResponse.json();
+        if (!weatherResponse.ok) {
+          throw new Error('Weather data fetch failed. Please check your API key.');
         }
+
+        const weatherData = await weatherResponse.json();
 
         // Calculate risk level based on REAL weather conditions
         const calculateRiskLevel = (weather) => {
@@ -57,8 +61,8 @@ const useFortData = () => {
 
         // Real-time data from OpenWeatherMap API only
         const fortDataObject = {
-          name: "Shivneri Fort",
-          location: "Junnar, Pune",
+          name: locationName === "Current Location" ? "Live Monitoring Site" : locationName,
+          location: locationName === "Current Location" ? `${lat.toFixed(4)}, ${lon.toFixed(4)}` : "Junnar, Pune",
           coordinates: { lat, lng: lon },
           temperature: Math.round(weatherData.main.temp),
           humidity: weatherData.main.humidity,
@@ -86,10 +90,10 @@ const useFortData = () => {
     };
 
     fetchFortData();
-    
+
     // Refresh data every 5 minutes
     const interval = setInterval(fetchFortData, 5 * 60 * 1000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -307,21 +311,8 @@ const RealtimeFortDashboard = () => {
 
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <button 
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div className="text-left">
-                  <div className="text-xl font-bold mb-1">Live Monitoring</div>
-                  <div className="text-sm text-orange-200">Real-time surveillance & alerts</div>
-                </div>
-                <Shield className="w-12 h-12 opacity-80" />
-              </div>
-              <div className="mt-3 text-xs text-orange-200 font-semibold">STAGE 1 - coming Soon</div>
-            </button>
-
-            <button 
-              onClick={() => navigate('/stage2')}
+            <button
+              onClick={() => navigate('/stage1')}
               className="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all cursor-pointer"
             >
               <div className="flex items-center justify-between">
@@ -331,7 +322,22 @@ const RealtimeFortDashboard = () => {
                 </div>
                 <TrendingUp className="w-12 h-12 opacity-80" />
               </div>
-              <div className="mt-3 text-xs text-purple-200 font-semibold">STAGE 2 - CLICK TO VIEW</div>
+              <div className="mt-3 text-xs text-purple-200 font-semibold">STAGE 1 - CLICK TO VIEW</div>
+            </button>
+
+
+            <button
+              onClick={() => navigate('/stage2')}
+              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <div className="text-xl font-bold mb-1">Live Monitoring</div>
+                  <div className="text-sm text-orange-200">Real-time surveillance & alerts</div>
+                </div>
+                <Shield className="w-12 h-12 opacity-80" />
+              </div>
+              <div className="mt-3 text-xs text-orange-200 font-semibold">STAGE 2 - CLICK TO VIEW</div>
             </button>
           </div>
 

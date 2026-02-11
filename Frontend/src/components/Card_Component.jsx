@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   MapPin, 
-  Shield, 
   Droplets, 
   Wind, 
   Battery, 

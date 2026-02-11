@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Activity, Shield, Zap, RefreshCw, Eye, Upload, Camera, CheckCircle, AlertCircle, X, Image, MapPin, BarChart3, AlertTriangle } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+
 const Stage2Dashboard = ({ setActiveStage }) => {
+  const navigate = useNavigate();
   const [fortsData, setFortsData] = useState([]);
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,17 +16,19 @@ const Stage2Dashboard = ({ setActiveStage }) => {
   const [preview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
-  
+
   const API_BASE = 'http://localhost:8000/api';
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  // ... (keeping fetchData and other functions same)
+
   const fetchData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const [fortsResponse, analysesResponse, statsResponse] = await Promise.all([
         fetch(`${API_BASE}/forts/`),
@@ -44,7 +49,7 @@ const Stage2Dashboard = ({ setActiveStage }) => {
 
       const enrichedForts = forts.map(fort => {
         const fortAnalyses = analyses.filter(a => a.fort === fort.id);
-        const latestAnalysis = fortAnalyses.sort((a, b) => 
+        const latestAnalysis = fortAnalyses.sort((a, b) =>
           new Date(b.analysis_date) - new Date(a.analysis_date)
         )[0];
 
@@ -116,10 +121,10 @@ const Stage2Dashboard = ({ setActiveStage }) => {
 
       setUploadResult(data);
       await fetchData();
-      
+
       setSelectedFile(null);
       setPreview(null);
-      
+
       if (data.is_first_upload || data.analysis) {
         setTimeout(() => {
           setShowUpload(false);
@@ -143,7 +148,7 @@ const Stage2Dashboard = ({ setActiveStage }) => {
     };
 
     const fortsWithAnalyses = fortsData.filter(f => f.analysisDate);
-    
+
     if (fortsWithAnalyses.length === 0) return {
       predictionAccuracy: 0,
       dataCorrelation: 0,
@@ -194,9 +199,9 @@ const Stage2Dashboard = ({ setActiveStage }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
-      {showUpload && <UploadModal fortsData={fortsData} selectedFort={selectedFort} setSelectedFort={setSelectedFort} selectedFile={selectedFile} preview={preview} uploading={uploading} uploadResult={uploadResult} onClose={() => {setShowUpload(false); setUploadResult(null); setSelectedFile(null); setPreview(null);}} onFileSelect={handleFileSelect} onUpload={handleUpload} />}
+      {showUpload && <UploadModal fortsData={fortsData} selectedFort={selectedFort} setSelectedFort={setSelectedFort} selectedFile={selectedFile} preview={preview} uploading={uploading} uploadResult={uploadResult} onClose={() => { setShowUpload(false); setUploadResult(null); setSelectedFile(null); setPreview(null); }} onFileSelect={handleFileSelect} onUpload={handleUpload} />}
       {selectedFortDetails && <FortDetailModal fort={selectedFortDetails} onClose={() => setSelectedFortDetails(null)} />}
-      <Header onUpload={() => setShowUpload(true)} onRefresh={fetchData} onReturn={setActiveStage ? () => setActiveStage('main') : null} />
+      <Header onUpload={() => setShowUpload(true)} onRefresh={fetchData} onReturn={() => navigate('/')} />
       <div className="max-w-7xl mx-auto px-6 py-10">
         <MetricsGrid metrics={metrics} />
         <div className="mb-8">
@@ -261,7 +266,7 @@ const MetricsGrid = ({ metrics }) => {
           <div className="text-4xl font-bold text-gray-900 mb-2">{metric.value}</div>
           <p className="text-gray-600 font-medium">{metric.label}</p>
           <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div className={`h-2 bg-gradient-to-r ${metric.bgColor} rounded-full transition-all`} style={{width: metric.value}} />
+            <div className={`h-2 bg-gradient-to-r ${metric.bgColor} rounded-full transition-all`} style={{ width: metric.value }} />
           </div>
         </div>
       ))}
@@ -456,6 +461,50 @@ const FortDetailModal = ({ fort, onClose }) => {
                   </ul>
                 </div>
               )}
+
+              <div className="mt-6 flex flex-wrap gap-4 border-t-2 border-gray-200 pt-4">
+                <h4 className="w-full font-bold text-gray-900">Verification:</h4>
+                {fort.detailedAnalysis.is_verified ? (
+                  <div className="w-full p-3 bg-blue-50 text-blue-800 rounded-xl border border-blue-200 font-semibold flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Analysis Verified {fort.detailedAnalysis.is_false_positive ? '(Marked as False Positive)' : '(Confirmed)'}
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await fetch(`http://localhost:8000/api/structural-analyses/${fort.detailedAnalysis.id}/verify/`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ is_verified: true, is_false_positive: false })
+                          });
+                          // ideally trigger refresh
+                          alert("Analysis Verified as Correct");
+                        } catch (e) { console.error(e); }
+                      }}
+                      className="flex-1 bg-green-600 text-white px-4 py-3 rounded-xl hover:bg-green-700 font-semibold shadow-md flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle className="w-5 h-5" /> Confirm Detection
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await fetch(`http://localhost:8000/api/structural-analyses/${fort.detailedAnalysis.id}/verify/`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ is_verified: true, is_false_positive: true })
+                          });
+                          alert("Marked as False Positive");
+                        } catch (e) { console.error(e); }
+                      }}
+                      className="flex-1 bg-gray-200 text-gray-800 px-4 py-3 rounded-xl hover:bg-gray-300 font-semibold shadow-md flex items-center justify-center gap-2"
+                    >
+                      <X className="w-5 h-5" /> False Positive
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
             {fort.recommendations.length > 0 && (
               <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6">
@@ -478,13 +527,30 @@ const FortDetailModal = ({ fort, onClose }) => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {fort.detailedAnalysis.analysis_results.detections.map((detection, i) => (
-                    <div key={i} className="bg-white rounded-xl p-4 border-2 border-orange-100">
-                      <div className="font-bold text-orange-600 mb-2">Change #{i + 1}</div>
-                      <div className="text-sm space-y-1 text-gray-700">
-                        <div>Area: {detection.area.toFixed(0)} px²</div>
-                        <div>Confidence: {(detection.confidence * 100).toFixed(1)}%</div>
-                        <div>Position: ({detection.bbox[0]}, {detection.bbox[1]})</div>
-                        <div>Size: {detection.bbox[2]} × {detection.bbox[3]} px</div>
+                    <div key={i} className={`bg-white rounded-xl p-4 border-l-4 ${detection.severity === 'Critical' ? 'border-l-red-500' :
+                        detection.severity === 'Moderate' ? 'border-l-orange-500' : 'border-l-yellow-400'
+                      } border-y-2 border-r-2 border-gray-100 shadow-sm`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="font-bold text-gray-800">Change #{i + 1}</div>
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${detection.severity === 'Critical' ? 'bg-red-100 text-red-700' :
+                            detection.severity === 'Moderate' ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                          {detection.severity}
+                        </span>
+                      </div>
+                      <div className="text-sm space-y-1 text-gray-600">
+                        <div className="flex justify-between">
+                          <span>Confidence:</span>
+                          <span className="font-semibold">{(detection.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1 mb-2">
+                          <div className={`h-1.5 rounded-full ${detection.confidence > 0.8 ? 'bg-green-500' : detection.confidence > 0.5 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`} style={{ width: `${detection.confidence * 100}%` }}></div>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span>Area: {detection.area.toFixed(0)} px²</span>
+                          <span>Size: {detection.bbox[2]}x{detection.bbox[3]}</span>
+                        </div>
                       </div>
                     </div>
                   ))}

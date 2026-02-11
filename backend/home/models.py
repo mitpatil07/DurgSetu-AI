@@ -79,6 +79,13 @@ class StructuralAnalysis(models.Model):
     analysis_results = models.JSONField()
     
     analysis_date = models.DateTimeField(auto_now_add=True)
+
+    # Phase 2: Verification Fields
+    is_verified = models.BooleanField(default=False)
+    is_false_positive = models.BooleanField(default=False)
+    user_notes = models.TextField(blank=True, null=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.CharField(max_length=100, null=True, blank=True)
     
     class Meta:
         ordering = ['-analysis_date']

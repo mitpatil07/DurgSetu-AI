@@ -1,4 +1,4 @@
-# backend/views.py - COMPLETE FILE
+# backend/views.py
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,7 +9,7 @@ from .structural_detector import StructuralChangeDetector
 from datetime import datetime
 import logging
 
-logger = logging.getLogger(__name__)  # FIXED: Changed from _name_ to __name__
+logger = logging.getLogger(__name__) 
 
 class FortViewSet(viewsets.ModelViewSet):
     queryset = Fort.objects.all()
@@ -56,6 +56,95 @@ class FortViewSet(viewsets.ModelViewSet):
             'forts_at_risk': risk_counts['HIGH'] + risk_counts['CRITICAL']
         })
 
+    @action(detail=False, methods=['get'])
+    def analytics(self, request):
+        """
+        Get detailed analytics for the dashboard:
+        1. Trend Data (Last 6 months)
+        2. Leaderboard (Best/Worst Forts)
+        3. Recent Critical Activity
+        """
+        from django.db.models.functions import TruncMonth
+        from django.utils import timezone
+        import datetime
+
+        # 1. Trend Data (Historical Risk Scores)
+        # Get data for the last 6 months
+        six_months_ago = timezone.now() - datetime.timedelta(days=180)
+        
+        trend_queryset = StructuralAnalysis.objects.filter(
+            analysis_date__gte=six_months_ago
+        ).annotate(
+            month=TruncMonth('analysis_date')
+        ).values('month').annotate(
+            avg_risk=Avg('risk_score'),
+            avg_health=Avg('ssim_score'),
+            count=Count('id')
+        ).order_by('month')
+
+        trend_data = []
+        if trend_queryset.exists():
+            for entry in trend_queryset:
+                trend_data.append({
+                    'name': entry['month'].strftime('%b'),
+                    'risk': round(entry['avg_risk'], 1),
+                    'health': round(entry['avg_health'] * 100, 1)
+                })
+        else:
+            # Fallback for empty DB: show empty chart or current month placeholder
+            trend_data = [{'name': timezone.now().strftime('%b'), 'risk': 0, 'health': 100}]
+
+        # 2. Leaderboard
+        forts = Fort.objects.all()
+        leaderboard = []
+        for fort in forts:
+            latest = StructuralAnalysis.objects.filter(fort=fort).order_by('-analysis_date').first()
+            if latest:
+                leaderboard.append({
+                    'id': fort.id,
+                    'name': fort.name,
+                    'location': fort.location,
+                    'health': round(latest.ssim_score * 100),
+                    'risk_score': latest.risk_score,
+                    'changes': latest.changes_detected,
+                    'status': latest.risk_level
+                })
+            else:
+                # Include forts with no analysis yet
+                 leaderboard.append({
+                    'id': fort.id,
+                    'name': fort.name,
+                    'location': fort.location,
+                    'health': 100, # Assume healthy if no data
+                    'risk_score': 0,
+                    'changes': 0,
+                    'status': 'SAFE'
+                })
+        
+        # Sort by Health (Descending)
+        leaderboard.sort(key=lambda x: x['health'], reverse=True)
+        
+        # 3. Recent Activity (Critical/High only)
+        recent_critical = StructuralAnalysis.objects.filter(
+            risk_level__in=['HIGH', 'CRITICAL']
+        ).order_by('-analysis_date')[:5]
+        
+        critical_alerts = []
+        for analysis in recent_critical:
+            critical_alerts.append({
+                'id': analysis.id,
+                'fort_name': analysis.fort.name,
+                'risk_level': analysis.risk_level,
+                'date': analysis.analysis_date,
+                'message': f"Detected {analysis.changes_detected} structural changes."
+            })
+
+        return Response({
+            'trend_data': trend_data,
+            'leaderboard': leaderboard,
+            'critical_alerts': critical_alerts
+        })
+
 
 class FortImageViewSet(viewsets.ModelViewSet):
     queryset = FortImage.objects.all()
@@ -80,6 +169,30 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(fort=fort_id)
         return queryset
     
+    @action(detail=True, methods=['post'])
+    def verify(self, request, pk=None):
+        """
+        Verify an analysis result.
+        POST data: is_verified (bool), is_false_positive (bool), user_notes (marketing)
+        """
+        analysis = self.get_object()
+        is_verified = request.data.get('is_verified', True)
+        is_false_positive = request.data.get('is_false_positive', False)
+        user_notes = request.data.get('user_notes', '')
+        
+        analysis.is_verified = is_verified
+        analysis.is_false_positive = is_false_positive
+        analysis.user_notes = user_notes
+        analysis.verified_at = datetime.now()
+        analysis.verified_by = request.user.username if request.user.is_authenticated else 'Anonymous'
+        analysis.save()
+        
+        return Response({
+            'status': 'verified',
+            'is_verified': analysis.is_verified,
+            'is_false_positive': analysis.is_false_positive
+        })
+
     @action(detail=False, methods=['post'])
     def analyze(self, request):
         """
