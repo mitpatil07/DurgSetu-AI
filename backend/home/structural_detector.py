@@ -25,6 +25,7 @@ class StructuralChangeDetector:
             'cluster_min_samples': 1,
             'risk_thresholds': {'low': 2, 'medium': 5, 'high': 10}
         }
+        self.k_factor = 0.0  # Dynamic sensitivity multiplier based on historical ML feedback
         self.setup_cnn_model()
         self.setup_processing_tools()
         
@@ -258,6 +259,18 @@ class StructuralChangeDetector:
         elif isinstance(obj, tuple):
             return tuple(self._convert_to_serializable(i) for i in obj)
         return obj
+        
+    def update_thresholds_from_history(self, false_positive_rate):
+        """
+        ML Feedback Loop Adaptation: The user trains the model via UI verification.
+        If a specific fort has a high rate of False Positives reported by the Admin, 
+        the threshold for 'significant change' is dynamically scaled upwards. 
+        This teaches the model to ignore artifact noise and 'perfect' its precision over time.
+        """
+        # Base k=0.0 is hyper-sensitive. A 50% FP rate translates to k=1.5
+        # Require feature differences to be 1.5 standard deviations above mean to detect anything.
+        self.k_factor = min(2.5, false_positive_rate * 3.0) 
+        print(f"ML Auto-Tuner: Adjusted model sensitivity constraint (k_factor) to {self.k_factor:.2f} based on a {false_positive_rate*100:.1f}% historical false positive rate.")
 
     def detect_structural_changes(self, past_img, current_img):
         # 1. Ensure same size (resize past to current)
@@ -278,7 +291,7 @@ class StructuralChangeDetector:
         
         # Lower k to 1.0 for        # k=0 means we detect anything above the average difference.
         # This is 'Raw' sensitivity.
-        k = 0.0
+        k = self.k_factor
         adaptive_thresh = mean_diff + (k * std_diff)
         
         # Cap max threshold at 0.30 to force detection

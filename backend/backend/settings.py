@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,6 +46,7 @@ INSTALLED_APPS = [
     'api',
     'corsheaders',
     'home',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -144,4 +148,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
 }
+
+# Email Configuration (SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'baapmanus.bm@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'gfgm ucjq ifue gyec'  # Your Gmail App Password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCdFnymtfQuyTm05-WaZiErsD8LtLRywxM")

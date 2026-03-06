@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, AlertTriangle, Shield, Activity,
-  ArrowUpRight, ArrowDownRight, LayoutDashboard
+  ArrowUpRight, ArrowDownRight, LayoutDashboard, User
 } from 'lucide-react';
 
 const Stage1Dashboard = () => {
@@ -21,9 +21,15 @@ const Stage1Dashboard = () => {
 
   const fetchData = async () => {
     try {
+      const token = localStorage.getItem('auth_token');
+      const headers = {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json'
+      };
+
       const [statsRes, analyticsRes] = await Promise.all([
-        fetch('http://localhost:8000/api/forts/statistics/'),
-        fetch('http://localhost:8000/api/forts/analytics/')
+        fetch('http://localhost:8000/api/forts/statistics/?mine=true', { headers }),
+        fetch('http://localhost:8000/api/forts/analytics/?mine=true', { headers })
       ]);
 
       if (!statsRes.ok || !analyticsRes.ok) throw new Error('Failed to fetch data');
@@ -54,39 +60,49 @@ const Stage1Dashboard = () => {
 
   const { stats, analytics } = data;
 
-  // Data for Risk Distribution Pie Chart
+  // Data for Risk Distribution Pie Chart (Updated Theme Colors)
   const pieData = [
-    { name: 'Safe', value: stats.risk_distribution.SAFE, color: '#10B981' },
-    { name: 'Low', value: stats.risk_distribution.LOW, color: '#3B82F6' },
-    { name: 'Medium', value: stats.risk_distribution.MEDIUM, color: '#F59E0B' },
-    { name: 'High', value: stats.risk_distribution.HIGH, color: '#EF4444' },
-    { name: 'Critical', value: stats.risk_distribution.CRITICAL, color: '#7F1D1D' }
+    { name: 'Safe', value: stats.risk_distribution.SAFE, color: '#10b981' }, // emerald-500
+    { name: 'Low', value: stats.risk_distribution.LOW, color: '#64748b' },   // slate-500
+    { name: 'Medium', value: stats.risk_distribution.MEDIUM, color: '#f59e0b' }, // amber-500
+    { name: 'High', value: stats.risk_distribution.HIGH, color: '#f97316' }, // orange-500
+    { name: 'Critical', value: stats.risk_distribution.CRITICAL, color: '#ef4444' } // red-500
   ].filter(d => d.value > 0);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <LayoutDashboard className="w-6 h-6 text-purple-600" />
+      {/* Floating Header */}
+      <header className="fixed w-full top-0 z-50 px-4 pt-4 pb-2 transition-all">
+        <div className="container mx-auto max-w-7xl bg-white/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl border border-white/40">
+          <div className="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg shadow-orange-500/30">
+                <LayoutDashboard className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight">AI Analytics Dashboard</h1>
+                <p className="text-orange-600 font-semibold text-[10px] md:text-xs tracking-wide uppercase">System-wide structural health overview</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">AI Analytics Dashboard</h1>
-              <p className="text-xs text-gray-500">System-wide structural health overview</p>
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 md:gap-3 w-full md:w-auto">
+              <button
+                onClick={() => navigate('/profile')}
+                className="px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl font-bold transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm cursor-pointer border border-orange-200/50 flex items-center gap-2 text-xs md:text-sm"
+              >
+                <User className="w-4 h-4" /> Profile
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm cursor-pointer text-xs md:text-sm border border-slate-200"
+              >
+                Home
+              </button>
             </div>
           </div>
-          <button
-            onClick={() => navigate('/')}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
-          >
-            Return to Home
-          </button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-6 pt-32 pb-8">
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -94,7 +110,7 @@ const Stage1Dashboard = () => {
             title="Total Forts Monitored"
             value={stats.total_forts}
             icon={Shield}
-            color="blue"
+            color="orange"
             subtext={`${stats.total_analyses} total scans performed`}
           />
           <KPICard
@@ -124,35 +140,37 @@ const Stage1Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
 
           {/* Main Trend Chart */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-gray-500" />
+          <div className="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group hover:border-orange-200 transition-colors">
+            <h2 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-orange-500" />
               Deterioration Trends (6 Months)
             </h2>
-            <div className="h-80">
+            <div className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={analytics.trend_data}>
+                <AreaChart data={analytics.trend_data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorHealth" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#64748b" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="#64748b" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" />
-                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} axisLine={false} tickLine={false} dy={10} />
+                  <YAxis stroke="#94a3b8" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} axisLine={false} tickLine={false} dx={-10} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', fontWeight: 600, color: '#1e293b' }}
+                    itemStyle={{ fontWeight: 700 }}
                   />
-                  <Legend />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontWeight: 600, color: '#475569', fontSize: '14px' }} />
                   <Area
                     type="monotone"
                     dataKey="risk"
-                    stroke="#EF4444"
+                    stroke="#f97316"
+                    strokeWidth={3}
                     fillOpacity={1}
                     fill="url(#colorRisk)"
                     name="Avg Risk Score"
@@ -160,7 +178,8 @@ const Stage1Dashboard = () => {
                   <Area
                     type="monotone"
                     dataKey="health"
-                    stroke="#10B981"
+                    stroke="#64748b"
+                    strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorHealth)"
                     name="Structural Health"
@@ -171,33 +190,40 @@ const Stage1Dashboard = () => {
           </div>
 
           {/* Risk Pie Chart */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800 mb-6">Risk Distribution</h2>
-            <div className="h-64 relative">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative hover:border-orange-200 transition-colors">
+            <h2 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+              <Activity className="w-6 h-6 text-orange-500" />
+              Risk Distribution
+            </h2>
+            <div className="h-[300px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
+                    innerRadius={80}
+                    outerRadius={100}
                     paddingAngle={5}
                     dataKey="value"
+                    stroke="none"
                   >
                     {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={36} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                    itemStyle={{ color: '#1e293b' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontWeight: 600, color: '#475569', fontSize: '13px' }} />
                 </PieChart>
               </ResponsiveContainer>
               {/* Center Text */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none mb-8">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-800">{stats.total_analyses}</div>
-                  <div className="text-xs text-gray-500">Analyses</div>
+                  <div className="text-4xl font-extrabold text-slate-800">{stats.total_analyses}</div>
+                  <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Analyses</div>
                 </div>
               </div>
             </div>
@@ -208,25 +234,27 @@ const Stage1Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
           {/* Fort Health Leaderboard */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Fort Health Leaderboard</h2>
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:border-orange-200 transition-colors">
+            <h2 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+              <Shield className="w-6 h-6 text-orange-500" />
+              Fort Health Leaderboard
+            </h2>
             <div className="space-y-4">
               {analytics.leaderboard.map((fort, i) => (
-                <div key={fort.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                <div key={fort.id} className="flex items-center justify-between p-5 bg-slate-50 border border-transparent hover:border-orange-200 rounded-2xl transition-all hover:bg-white hover:shadow-md group cursor-default">
                   <div className="flex items-center gap-4">
-                    <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${i < 3 ? 'bg-yellow-400 text-yellow-900' : 'bg-gray-200 text-gray-600'
-                      }`}>
+                    <div className={`w-10 h-10 flex items-center justify-center rounded-xl font-extrabold text-base transition-colors ${i === 0 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : i === 1 ? 'bg-orange-300 text-white' : i === 2 ? 'bg-orange-200 text-orange-800' : 'bg-slate-200 text-slate-500 group-hover:bg-slate-300'}`}>
                       {i + 1}
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900">{fort.name}</h3>
-                      <p className="text-xs text-gray-500">{fort.location}</p>
+                      <h3 className="font-bold text-slate-900 text-lg group-hover:text-orange-600 transition-colors">{fort.name}</h3>
+                      <p className="text-sm font-medium text-slate-500">{fort.location}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-gray-800">{fort.health}% Health</div>
-                    <div className={`text-xs font-semibold ${fort.status === 'SAFE' ? 'text-green-600' :
-                        fort.status === 'CRITICAL' ? 'text-red-600' : 'text-orange-600'
+                    <div className="font-extrabold text-slate-800 text-lg">{fort.health}% <span className="text-sm text-slate-400 font-medium">Health</span></div>
+                    <div className={`text-xs font-bold px-2 py-1 rounded-md inline-block mt-1 ${fort.status === 'SAFE' ? 'bg-green-100 text-green-700' :
+                      fort.status === 'CRITICAL' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                       }`}>
                       {fort.status}
                     </div>
@@ -234,37 +262,40 @@ const Stage1Dashboard = () => {
                 </div>
               ))}
               {analytics.leaderboard.length === 0 && (
-                <p className="text-center text-gray-500 italic py-8">No data available yet.</p>
+                <div className="text-center py-12 flex flex-col items-center justify-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                  <Shield className="w-8 h-8 text-slate-300 mb-3" />
+                  <p className="text-slate-500 font-bold">No ranking data available yet.</p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Critical Alerts Feed */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:border-orange-200 transition-colors flex flex-col">
+            <h2 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6 text-red-500" />
               Recent Critical Alerts
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1">
               {analytics.critical_alerts.map((alert) => (
-                <div key={alert.id} className="p-4 bg-red-50 border border-red-100 rounded-xl">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-red-900">{alert.fort_name}</h3>
-                    <span className="text-xs font-medium bg-red-200 text-red-800 px-2 py-0.5 rounded">
+                <div key={alert.id} className="p-5 bg-red-50/50 border border-red-100 rounded-2xl hover:bg-red-50 transition-colors">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-red-900 text-lg">{alert.fort_name}</h3>
+                    <span className="text-xs font-bold bg-red-100 text-red-700 px-3 py-1 rounded-full border border-red-200">
                       {alert.risk_level}
                     </span>
                   </div>
-                  <p className="text-sm text-red-700 mb-2">{alert.message}</p>
-                  <p className="text-xs text-red-500">{new Date(alert.date).toLocaleString()}</p>
+                  <p className="text-sm font-medium text-red-800 mb-3 leading-relaxed">{alert.message}</p>
+                  <p className="text-xs font-bold text-red-900/40">{new Date(alert.date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</p>
                 </div>
               ))}
               {analytics.critical_alerts.length === 0 && (
-                <div className="text-center py-12 flex flex-col items-center">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                    <Shield className="w-6 h-6 text-green-600" />
+                <div className="h-full flex flex-col items-center justify-center py-12 bg-green-50/50 rounded-2xl border-2 border-dashed border-green-100 min-h-[300px]">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <Shield className="w-8 h-8 text-green-500" />
                   </div>
-                  <p className="text-gray-600 font-medium">All systems normal</p>
-                  <p className="text-xs text-gray-400">No critical alerts in the last 24 hours</p>
+                  <p className="text-green-800 font-bold text-lg">All systems normal</p>
+                  <p className="text-sm font-medium text-green-600 mt-1">No critical alerts in the last 24 hours</p>
                 </div>
               )}
             </div>
@@ -279,22 +310,22 @@ const Stage1Dashboard = () => {
 // Helper Component for KPI Cards
 const KPICard = ({ title, value, icon: Icon, color, subtext }) => {
   const colorMap = {
-    blue: 'bg-blue-100 text-blue-600',
-    green: 'bg-green-100 text-green-600',
-    red: 'bg-red-100 text-red-600',
-    orange: 'bg-orange-100 text-orange-600'
+    blue: 'bg-blue-50 text-blue-600',
+    green: 'bg-green-50 text-green-600',
+    red: 'bg-red-50 text-red-600',
+    orange: 'bg-orange-50 text-orange-600'
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start mb-4">
-        <div className={`p-3 rounded-xl ${colorMap[color]}`}>
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{title}</p>
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${colorMap[color]}`}>
           <Icon className="w-6 h-6" />
         </div>
       </div>
-      <div className="text-3xl font-bold text-gray-900 mb-1">{value}</div>
-      <div className="text-sm font-medium text-gray-500 mb-2">{title}</div>
-      <div className="text-xs text-gray-400">{subtext}</div>
+      <p className="text-4xl font-extrabold text-slate-800 mb-1">{value}</p>
+      <p className="text-sm font-medium text-slate-400">{subtext}</p>
     </div>
   );
 };

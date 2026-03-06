@@ -1,17 +1,129 @@
-# backend/views.py
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import viewsets, status, generics, permissions
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from django.core.mail import send_mail, EmailMessage
+from django.conf import settings
 from django.db.models import Count, Avg
+import google.generativeai as genai
 from .models import Fort, FortImage, StructuralAnalysis
 from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer
 from .structural_detector import StructuralChangeDetector
+from .report_generator import generate_pdf_report
 from datetime import datetime
 import logging
+import threading
 
 logger = logging.getLogger(__name__) 
 
+def send_ai_report_email(analysis, user_notes, user_email):
+    if not user_email:
+        return
+        
+    try:
+        api_key = getattr(settings, 'GEMINI_API_KEY', 'dummy_key')
+        if api_key and api_key != 'dummy_key':
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            
+            fort_name = analysis.fort.name
+            risk = analysis.risk_level
+            changes = analysis.changes_detected
+            notes = user_notes if user_notes else "None"
+            
+            prompt = f"""
+            You are an expert Structural AI Analyst for 'DurgSetu AI', a system dedicated to preserving historical forts.
+            
+            An admin has just scanned or verified the latest visuals for {fort_name}.
+            
+            Data points:
+            - Fort Name: {fort_name}
+            - Number of Structural Changes Detected: {changes}
+            - Overall Risk Level: {risk}
+            - Admin Notes: {notes}
+            
+            Please write a short, professional email report addressed to the Admin team.
+            Summarize the findings, state the risk level clearly, and suggest what prompt action they might need to take based on the risk level. Keep it under 150 words. Do not use markdown format in the email body.
+            """
+            
+            response = model.generate_content(prompt)
+            ai_email_body = response.text
+        else:
+            fort_name = analysis.fort.name
+            ai_email_body = f"DurgSetu AI Automated Report\nFort: {fort_name}\nRisk Level: {analysis.risk_level}\nChanges Detected: {analysis.changes_detected}\nNotes: {user_notes}\n\n(Note: Gemini AI is not configured. Add GEMINI_API_KEY to Django settings to enable AI generated reports.)"
+        
+        email_msg = EmailMessage(
+            subject=f'[DurgSetu AI Agent] Structural Report - {analysis.fort.name}',
+            body=ai_email_body,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'agent@durgsetu.ai'),
+            to=[user_email],
+        )
+        
+        # Attach the PDF Report
+        try:
+            pdf_bytes = generate_pdf_report(analysis, ai_email_body)
+            safe_fort_name = analysis.fort.name.replace(" ", "_")
+            email_msg.attach(f'Structural_Analysis_{safe_fort_name}.pdf', pdf_bytes, 'application/pdf')
+        except Exception as e:
+            logger.error(f"Failed to generate PDF attachment: {e}")
+            
+        email_msg.send(fail_silently=False)
+        logger.info(f"AI Email sent with PDF to {user_email} for fort {analysis.fort.name}")
+            
+    except Exception as e:
+        logger.error(f"Failed to generate or send AI email: {e}")
+
+logger = logging.getLogger(__name__)
+
+# --- Authentication Views ---
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        email = request.data.get('email', '')
+        
+        if not username or not password:
+            return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if User.objects.filter(username=username).exists():
+            return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = User.objects.create_user(username=username, email=email, password=password)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'email': user.email
+        }, status=status.HTTP_201_CREATED)
+
+
+class LoginView(generics.GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'user_id': user.pk,
+                'email': user.email
+            })
+        else:
+            return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class FortViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Fort.objects.all()
     serializer_class = FortSerializer
     
@@ -19,10 +131,13 @@ class FortViewSet(viewsets.ModelViewSet):
     def statistics(self, request):
         """Get overall statistics for all forts"""
         forts = Fort.objects.all()
+        mine = request.query_params.get('mine', None)
         total_forts = forts.count()
         
         # Get latest analyses for each fort
         analyses = StructuralAnalysis.objects.all()
+        if mine == 'true' and request.user.is_authenticated:
+            analyses = analyses.filter(verified_by=request.user.username)
         
         risk_counts = {
             'SAFE': 0,
@@ -37,11 +152,11 @@ class FortViewSet(viewsets.ModelViewSet):
             if risk_level in risk_counts:
                 risk_counts[risk_level] += 1
         
-        total_analyses = StructuralAnalysis.objects.count()
+        total_analyses = analyses.count()
         total_images = FortImage.objects.count()
         
         # Calculate average scores
-        avg_metrics = StructuralAnalysis.objects.aggregate(
+        avg_metrics = analyses.aggregate(
             avg_ssim=Avg('ssim_score'),
             avg_risk=Avg('risk_score')
         )
@@ -71,10 +186,15 @@ class FortViewSet(viewsets.ModelViewSet):
         # 1. Trend Data (Historical Risk Scores)
         # Get data for the last 6 months
         six_months_ago = timezone.now() - datetime.timedelta(days=180)
+        mine = request.query_params.get('mine', None)
         
         trend_queryset = StructuralAnalysis.objects.filter(
             analysis_date__gte=six_months_ago
-        ).annotate(
+        )
+        if mine == 'true' and request.user.is_authenticated:
+            trend_queryset = trend_queryset.filter(verified_by=request.user.username)
+            
+        trend_queryset = trend_queryset.annotate(
             month=TruncMonth('analysis_date')
         ).values('month').annotate(
             avg_risk=Avg('risk_score'),
@@ -98,7 +218,11 @@ class FortViewSet(viewsets.ModelViewSet):
         forts = Fort.objects.all()
         leaderboard = []
         for fort in forts:
-            latest = StructuralAnalysis.objects.filter(fort=fort).order_by('-analysis_date').first()
+            latest = StructuralAnalysis.objects.filter(fort=fort)
+            if mine == 'true' and request.user.is_authenticated:
+                latest = latest.filter(verified_by=request.user.username)
+            latest = latest.order_by('-analysis_date').first()
+            
             if latest:
                 leaderboard.append({
                     'id': fort.id,
@@ -127,7 +251,11 @@ class FortViewSet(viewsets.ModelViewSet):
         # 3. Recent Activity (Critical/High only)
         recent_critical = StructuralAnalysis.objects.filter(
             risk_level__in=['HIGH', 'CRITICAL']
-        ).order_by('-analysis_date')[:5]
+        )
+        if mine == 'true' and request.user.is_authenticated:
+            recent_critical = recent_critical.filter(verified_by=request.user.username)
+            
+        recent_critical = recent_critical.order_by('-analysis_date')[:5]
         
         critical_alerts = []
         for analysis in recent_critical:
@@ -147,6 +275,7 @@ class FortViewSet(viewsets.ModelViewSet):
 
 
 class FortImageViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = FortImage.objects.all()
     serializer_class = FortImageSerializer
     
@@ -159,14 +288,21 @@ class FortImageViewSet(viewsets.ModelViewSet):
 
 
 class StructuralAnalysisViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = StructuralAnalysis.objects.all()
     serializer_class = StructuralAnalysisSerializer
     
     def get_queryset(self):
         queryset = StructuralAnalysis.objects.all()
         fort_id = self.request.query_params.get('fort', None)
+        mine = self.request.query_params.get('mine', None)
+        
         if fort_id:
             queryset = queryset.filter(fort=fort_id)
+            
+        if mine == 'true' and self.request.user.is_authenticated:
+            queryset = queryset.filter(verified_by=self.request.user.username)
+            
         return queryset
     
     @action(detail=True, methods=['post'])
@@ -187,10 +323,19 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
         analysis.verified_by = request.user.username if request.user.is_authenticated else 'Anonymous'
         analysis.save()
         
+        # --- AI Agent Email Notification Logic ---
+        if is_verified:
+            # Run in a separate thread so it doesn't block the API response
+            threading.Thread(
+                target=send_ai_report_email, 
+                args=(analysis, user_notes, request.user.email)
+            ).start()
+
         return Response({
             'status': 'verified',
             'is_verified': analysis.is_verified,
-            'is_false_positive': analysis.is_false_positive
+            'is_false_positive': analysis.is_false_positive,
+            'email_sent': bool(is_verified and request.user.email)
         })
 
     @action(detail=False, methods=['post'])
@@ -247,6 +392,23 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             logger.info(f"Starting structural analysis for fort {fort.name}")
             detector = StructuralChangeDetector()
             
+            # --- Auto-Training / ML Feedback Loop ---
+            # Calculate historical false positive rate for this fort to dynamically tune model sensitivity
+            if request.user.is_authenticated:
+                history_qs = StructuralAnalysis.objects.filter(fort=fort, is_verified=True, verified_by=request.user.username)
+            else:
+                history_qs = StructuralAnalysis.objects.filter(fort=fort, is_verified=True)
+                
+            total_verifications = history_qs.count()
+            false_positives = history_qs.filter(is_false_positive=True).count()
+            
+            fp_rate = 0.0
+            if total_verifications > 0:
+                fp_rate = false_positives / total_verifications
+                
+            detector.update_thresholds_from_history(fp_rate)
+            # ----------------------------------------
+            
             # Load images
             past_img = detector.load_image_from_file(previous_image.image)
             current_img = detector.load_image_from_file(current_image.image)
@@ -283,6 +445,12 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             )
             
             logger.info(f"Analysis complete: {results['risk_assessment']['level']} risk detected")
+            
+            # --- Auto-send Email upon scan generation ---
+            threading.Thread(
+                target=send_ai_report_email, 
+                args=(analysis, "Automated scan completed on new image upload.", request.user.email if hasattr(request.user, 'email') else None)
+            ).start()
             
             # Return full analysis
             serializer = self.get_serializer(analysis, context={'request': request})

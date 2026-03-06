@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Calendar, Activity, Shield, TrendingUp, Eye, AlertCircle } from 'lucide-react';
+import { Crown, Calendar, Activity, Shield, TrendingUp, Eye, AlertCircle, LogIn, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Custom hook for fetching real-time fort data
@@ -106,6 +106,15 @@ const RealtimeFortDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
 
+  const token = localStorage.getItem('auth_token');
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_id');
+    navigate('/login');
+  };
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -153,191 +162,217 @@ const RealtimeFortDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-red-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-orange-600 to-orange-800 shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-3 rounded-full backdrop-blur-md">
-                <Crown className="w-8 h-8 text-white" />
+      {/* Floating Header */}
+      <header className="fixed w-full top-0 z-50 px-4 pt-4 pb-2 transition-all">
+        <div className="container mx-auto max-w-7xl bg-white/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl border border-white/40">
+          <div className="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+            {/* Logo Area */}
+            <div className="flex items-center gap-4">
+              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg shadow-orange-500/30">
+                <Crown className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white">
+                <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight">
                   DurgSetu AI
                 </h1>
-                <p className="text-orange-200 text-xs md:text-sm">
-                  Real-time Fort Monitoring System
+                <p className="text-orange-600 font-semibold text-xs tracking-wide uppercase">
+                  Protective Analytics
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-2 text-white">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">Live</span>
-              </div>
-              <div className="bg-white/10 px-4 py-2 rounded-lg backdrop-blur-md border border-white/20">
-                <div className="text-lg font-bold text-white">
-                  {currentTime.toLocaleTimeString('en-IN', { hour12: true })}
+            {/* Right Side Actions */}
+            <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+
+              {/* Live Status indicator */}
+              <div className="hidden md:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
+                <div className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </div>
+                <span className="text-sm font-bold text-slate-700">Live</span>
+                <span className="mx-2 text-slate-300">|</span>
+                <span className="text-sm font-bold text-slate-600 font-mono">
+                  {currentTime.toLocaleTimeString('en-IN', { hour12: true })}
+                </span>
               </div>
+
+              {/* Auth Buttons */}
+              {token ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="flex items-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-orange-200/50 cursor-pointer"
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-slate-200 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline">Logout</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => navigate('/login')}
+                  className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Admin Login
+                </button>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Quick Stats Bar */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-700 font-medium">System Active</span>
-              </div>
-              <div className="text-sm text-gray-600">
-                Auto-refresh: 5 min
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Calendar className="w-4 h-4" />
-              {currentTime.toLocaleDateString('en-IN', {
-                weekday: 'short',
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      {/* Main Content (added pt-28 to account for floating header) */}
+      <div className="container mx-auto px-4 pt-32 pb-12">
         <div className="max-w-6xl mx-auto">
-          {/* Fort Header Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-1">{fortData.name}</h2>
-                <p className="text-gray-600 flex items-center gap-2">
-                  <Activity className="w-4 h-4" />
-                  {fortData.location}
-                </p>
+          {/* Fort Title / Location Card */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 mb-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-100/50 to-orange-50/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-700"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-orange-100 text-orange-700 text-[10px] md:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                  Active Monitoring
+                </span>
               </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-800 tracking-tight mb-2">{fortData.name}</h2>
+              <p className="text-slate-500 font-medium flex items-center gap-2 text-base md:text-lg">
+                <Activity className="w-5 h-5 text-orange-400" />
+                {fortData.location}
+              </p>
             </div>
           </div>
 
-          {/* Weather Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-orange-200 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-gray-600">Temperature</p>
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-orange-600" />
+          {/* Environmental Metrics (Unified Orange Theme) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-wider">Temperature</p>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-orange-100">
+                  <Activity className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-orange-600 mb-1">{fortData.temperature}°C</p>
-              <p className="text-xs text-gray-500">Feels like {fortData.feelsLike}°C</p>
+              <p className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">{fortData.temperature}°C</p>
+              <p className="text-xs md:text-sm font-medium text-slate-400">Feels like <span className="text-slate-600">{fortData.feelsLike}°C</span></p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-blue-200 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-gray-600">Humidity</p>
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-blue-600" />
+            <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-wider">Humidity</p>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-orange-100">
+                  <Activity className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-blue-600 mb-1">{fortData.humidity}%</p>
-              <p className="text-xs text-gray-500">Current level</p>
+              <p className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">{fortData.humidity}%</p>
+              <p className="text-xs md:text-sm font-medium text-slate-400">Current moisture level</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-green-200 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-gray-600">Wind Speed</p>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-green-600" />
+            <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-wider">Wind Speed</p>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-orange-100">
+                  <Activity className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-green-600 mb-1">{fortData.windSpeed}</p>
-              <p className="text-xs text-gray-500">km/h</p>
+              <p className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">{fortData.windSpeed}</p>
+              <p className="text-xs md:text-sm font-medium text-slate-400">Kilometers per hour</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-200 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-gray-600">Visibility</p>
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-purple-600" />
+            <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-wider">Visibility</p>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-orange-100">
+                  <Eye className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-purple-600 mb-1">{fortData.visibility}</p>
-              <p className="text-xs text-gray-500">km range</p>
+              <p className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">{fortData.visibility}</p>
+              <p className="text-xs md:text-sm font-medium text-slate-400">Kilometer range</p>
             </div>
           </div>
 
-          {/* Real-Time Environmental Data */}
-          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-orange-600" />
-              Real-Time Environmental Data
+          {/* Detailed Environmental Specs */}
+          <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 mb-8 overflow-hidden relative">
+            <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
+                <Activity className="w-5 h-5" />
+              </div>
+              Real-Time Atmospheric Data
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Weather Condition</span>
-                <span className="font-semibold text-gray-800 capitalize">{fortData.conditionDescription}</span>
+              <div className="flex items-center justify-between py-4 px-5 bg-slate-50 rounded-xl hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
+                <span className="text-sm font-bold text-slate-500">Condition</span>
+                <span className="font-extrabold text-slate-800 capitalize tracking-tight">{fortData.conditionDescription}</span>
               </div>
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Atmospheric Pressure</span>
-                <span className="font-semibold text-gray-800">{fortData.pressure} hPa</span>
+              <div className="flex items-center justify-between py-4 px-5 bg-slate-50 rounded-xl hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
+                <span className="text-sm font-bold text-slate-500">Pressure</span>
+                <span className="font-extrabold text-slate-800 tracking-tight">{fortData.pressure} hPa</span>
               </div>
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Cloud Coverage</span>
-                <span className="font-semibold text-gray-800">{fortData.cloudCoverage}%</span>
+              <div className="flex items-center justify-between py-4 px-5 bg-slate-50 rounded-xl hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
+                <span className="text-sm font-bold text-slate-500">Cloud Shield</span>
+                <span className="font-extrabold text-slate-800 tracking-tight">{fortData.cloudCoverage}%</span>
               </div>
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Sunrise Time</span>
-                <span className="font-semibold text-gray-800">{fortData.sunrise}</span>
+              <div className="flex items-center justify-between py-4 px-5 bg-slate-50 rounded-xl hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
+                <span className="text-sm font-bold text-slate-500">Sunrise</span>
+                <span className="font-extrabold text-slate-800 tracking-tight">{fortData.sunrise}</span>
               </div>
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Sunset Time</span>
-                <span className="font-semibold text-gray-800">{fortData.sunset}</span>
+              <div className="flex items-center justify-between py-4 px-5 bg-slate-50 rounded-xl hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
+                <span className="text-sm font-bold text-slate-500">Sunset</span>
+                <span className="font-extrabold text-slate-800 tracking-tight">{fortData.sunset}</span>
               </div>
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Temp Range</span>
-                <span className="font-semibold text-gray-800">{fortData.tempMin}°C - {fortData.tempMax}°C</span>
+              <div className="flex items-center justify-between py-4 px-5 bg-slate-50 rounded-xl hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
+                <span className="text-sm font-bold text-slate-500">Variance</span>
+                <span className="font-extrabold text-orange-600 tracking-tight">{fortData.tempMin}° / {fortData.tempMax}°</span>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Action Navigation Panels */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Stage 1 Panel */}
             <button
               onClick={() => navigate('/stage1')}
-              className="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all cursor-pointer"
+              className="group relative bg-slate-900 border border-slate-800 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 text-left w-full cursor-pointer"
             >
-              <div className="flex items-center justify-between">
-                <div className="text-left">
-                  <div className="text-xl font-bold mb-1">AI Analytics</div>
-                  <div className="text-sm text-purple-200">Predictive insights & trends</div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-slate-800 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-colors group-hover:bg-slate-700"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between gap-12">
+                <div className="bg-slate-800 w-fit p-4 rounded-2xl border border-slate-700 shadow-inner group-hover:border-slate-600 transition-colors">
+                  <TrendingUp className="w-8 h-8 text-slate-300 group-hover:text-white" />
                 </div>
-                <TrendingUp className="w-12 h-12 opacity-80" />
+                <div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2">AI Analytics Center</h3>
+                  <p className="text-slate-400 font-medium mb-4">View historical trends, risk leaderboards, and system-wide predictive analytics.</p>
+                  <div className="inline-flex items-center gap-2 text-sm font-bold text-orange-400 tracking-wide">
+                    ACCESS STAGE 1 <Activity className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
               </div>
-              <div className="mt-3 text-xs text-purple-200 font-semibold">STAGE 1 - CLICK TO VIEW</div>
             </button>
 
-
+            {/* Stage 2 Panel */}
             <button
               onClick={() => navigate('/stage2')}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all cursor-pointer"
+              className="group relative bg-gradient-to-br from-orange-500 to-orange-600 border border-orange-500 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/40 text-left w-full cursor-pointer"
             >
-              <div className="flex items-center justify-between">
-                <div className="text-left">
-                  <div className="text-xl font-bold mb-1">Live Monitoring</div>
-                  <div className="text-sm text-orange-200">Real-time surveillance & alerts</div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-colors group-hover:bg-white/20"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between gap-12">
+                <div className="bg-white/20 w-fit p-4 rounded-2xl border border-white/20 shadow-inner backdrop-blur-md">
+                  <Shield className="w-8 h-8 text-white" />
                 </div>
-                <Shield className="w-12 h-12 opacity-80" />
+                <div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2">Live Verification</h3>
+                  <p className="text-orange-100 font-medium mb-4">Upload new scans, execute deep structural differencing, and dispatch high-alert emails.</p>
+                  <div className="inline-flex items-center gap-2 text-sm font-bold text-white tracking-wide">
+                    LAUNCH STAGE 2 <Shield className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
               </div>
-              <div className="mt-3 text-xs text-orange-200 font-semibold">STAGE 2 - CLICK TO VIEW</div>
             </button>
           </div>
 
