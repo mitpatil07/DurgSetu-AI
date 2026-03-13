@@ -169,7 +169,7 @@ const RealtimeFortDashboard = () => {
 
             {/* Logo Area */}
             <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg shadow-orange-500/30">
+              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg shadow-orange-500/30 shrink-0">
                 <Crown className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -183,10 +183,10 @@ const RealtimeFortDashboard = () => {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            <div className="flex flex-wrap items-center justify-start md:justify-end gap-3 w-full md:w-auto">
 
               {/* Live Status indicator */}
-              <div className="hidden md:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
+              <div className="hidden md:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shrink-0">
                 <div className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
@@ -200,26 +200,26 @@ const RealtimeFortDashboard = () => {
 
               {/* Auth Buttons */}
               {token ? (
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
                   <button
                     onClick={() => navigate('/profile')}
-                    className="flex items-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-orange-200/50 cursor-pointer"
+                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-orange-200/50 cursor-pointer"
                   >
                     <User className="w-4 h-4" />
                     Profile
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-slate-200 cursor-pointer"
+                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-slate-200 cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span className="hidden sm:inline">Logout</span>
+                    <span className="inline">Logout</span>
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => navigate('/login')}
-                  className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer"
+                  className="w-full md:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer mt-2 md:mt-0"
                 >
                   <LogIn className="w-4 h-4" />
                   Admin Login

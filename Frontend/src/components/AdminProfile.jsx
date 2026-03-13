@@ -224,24 +224,24 @@ const AnalysisDetailModal = ({ analysis, onClose }) => {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 text-center">
-                                <div className="text-3xl font-bold text-gray-900">{analysis.changes_detected}</div>
-                                <div className="text-sm text-gray-600 font-medium">Changes Detected</div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 text-center flex flex-col justify-center">
+                                <div className="text-2xl md:text-3xl font-bold text-gray-900">{analysis.changes_detected}</div>
+                                <div className="text-xs md:text-sm text-gray-600 font-medium">Changes Detected</div>
                             </div>
-                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 text-center">
-                                <div className="text-3xl font-bold text-gray-900">{analysis.risk_score || 0}/10</div>
-                                <div className="text-sm text-gray-600 font-medium">Risk Score</div>
+                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 text-center flex flex-col justify-center">
+                                <div className="text-2xl md:text-3xl font-bold text-gray-900">{analysis.risk_score || 0}<span className="text-base text-gray-400">/10</span></div>
+                                <div className="text-xs md:text-sm text-gray-600 font-medium">Risk Score</div>
                             </div>
-                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 text-center">
-                                <div className="text-3xl font-bold text-gray-900">
-                                    {analysis.ssim_score ? (analysis.ssim_score * 100).toFixed(1) : 0}%
+                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 text-center flex flex-col justify-center">
+                                <div className="text-2xl md:text-3xl font-bold text-gray-900">
+                                    {analysis.ssim_score ? (analysis.ssim_score * 100).toFixed(1) : 0}<span className="text-base text-gray-400">%</span>
                                 </div>
-                                <div className="text-sm text-gray-600 font-medium">SSIM Score</div>
+                                <div className="text-xs md:text-sm text-gray-600 font-medium">SSIM Score</div>
                             </div>
-                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 text-center">
-                                <div className="text-3xl font-bold text-gray-900">{analysis.risk_level}</div>
-                                <div className="text-sm text-gray-600 font-medium">Risk Level</div>
+                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 text-center flex flex-col justify-center col-span-2 md:col-span-1 lg:col-span-1">
+                                <div className={`text-xl md:text-2xl font-bold ${['HIGH', 'CRITICAL'].includes(analysis.risk_level) ? 'text-red-700' : analysis.risk_level === 'MEDIUM' ? 'text-yellow-700' : 'text-green-700'}`}>{analysis.risk_level}</div>
+                                <div className="text-xs md:text-sm text-gray-600 font-medium">Risk Level</div>
                             </div>
                         </div>
 

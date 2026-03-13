@@ -80,6 +80,13 @@ class StructuralAnalysis(models.Model):
     
     analysis_date = models.DateTimeField(auto_now_add=True)
 
+    # Phase 3: Environmental Tracking & Climate Stress Index
+    temperature = models.FloatField(null=True, blank=True)
+    humidity = models.FloatField(null=True, blank=True)
+    wind_speed = models.FloatField(null=True, blank=True)
+    climate_stress_index = models.FloatField(default=0.0)
+    final_heritage_risk_score = models.FloatField(default=0.0)
+
     # Phase 2: Verification Fields
     is_verified = models.BooleanField(default=False)
     is_false_positive = models.BooleanField(default=False)

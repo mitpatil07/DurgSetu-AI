@@ -413,8 +413,13 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             past_img = detector.load_image_from_file(previous_image.image)
             current_img = detector.load_image_from_file(current_image.image)
             
-            # Detect changes
-            results = detector.detect_structural_changes(past_img, current_img)
+            # Extract environmental data from request
+            temp = request.data.get('temperature')
+            humidity = request.data.get('humidity')
+            wind_speed = request.data.get('wind_speed')
+            
+            # Detect changes & evaluate Climate Stress Index (CSI)
+            results = detector.detect_structural_changes(past_img, current_img, temp, humidity, wind_speed)
             
             # Create annotated image
             annotated_img = detector.visualize_results(current_img, results)
@@ -423,7 +428,7 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             # Calculate total area
             total_area = sum(d['area'] for d in results['detections']) if results['detections'] else 0
             
-            # Save analysis
+            # Save analysis with Phase 3 Environmental tracking
             analysis = StructuralAnalysis.objects.create(
                 fort=fort,
                 previous_image=previous_image,
@@ -434,7 +439,12 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
                 risk_score=results['risk_assessment']['score'],
                 changes_detected=results['total_changes'],
                 total_area_affected=total_area,
-                analysis_results=results
+                analysis_results=results,
+                temperature=temp,
+                humidity=humidity,
+                wind_speed=wind_speed,
+                climate_stress_index=results.get('environmental_data', {}).get('climate_stress_index', 0.0),
+                final_heritage_risk_score=results.get('environmental_data', {}).get('final_heritage_risk_score', 0.0)
             )
             
             # Save annotated image

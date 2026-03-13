@@ -272,7 +272,7 @@ class StructuralChangeDetector:
         self.k_factor = min(2.5, false_positive_rate * 3.0) 
         print(f"ML Auto-Tuner: Adjusted model sensitivity constraint (k_factor) to {self.k_factor:.2f} based on a {false_positive_rate*100:.1f}% historical false positive rate.")
 
-    def detect_structural_changes(self, past_img, current_img):
+    def detect_structural_changes(self, past_img, current_img, temp=None, humidity=None, wind_speed=None):
         # 1. Ensure same size (resize past to current)
         if past_img.shape != current_img.shape:
             h, w = min(past_img.shape[0], current_img.shape[0]), min(past_img.shape[1], current_img.shape[1])
@@ -352,8 +352,8 @@ class StructuralChangeDetector:
         except Exception:
             ssim_val = 0.5 
         
-        # 8. Risk Assessment
-        risk_assessment = self.assess_risk(clustered_detections, global_diff_score)
+        # 8. Risk Assessment & Climate Stress Calculation
+        risk_assessment = self.assess_risk(clustered_detections, global_diff_score, temp, humidity, wind_speed)
         
         results = {
             'cnn_distance': float(global_diff_score),
@@ -361,6 +361,14 @@ class StructuralChangeDetector:
             'detections': clustered_detections,
             'risk_assessment': risk_assessment,
             'total_changes': len(clustered_detections),
+            # Phase 3 data export
+            'environmental_data': {
+                'temperature': temp,
+                'humidity': humidity,
+                'wind_speed': wind_speed,
+                'climate_stress_index': risk_assessment.get('climate_stress_index', 0.0),
+                'final_heritage_risk_score': risk_assessment.get('final_heritage_score', 0.0)
+            }
         }
         
         return self._convert_to_serializable(results)
@@ -420,45 +428,86 @@ class StructuralChangeDetector:
             'centroid': ((x1+x2)//2, (y1+y2)//2)
         }
 
-    def assess_risk(self, detections, global_diff_score):
+    def assess_risk(self, detections, global_diff_score, temp=None, humidity=None, wind_speed=None):
         change_count = len(detections)
-        if change_count == 0:
-            return {'level': 'SAFE', 'score': 0, 'description': 'No significant structural changes', 'recommendations': []}
-            
-        max_conf = max([d['confidence'] for d in detections]) if detections else 0
-        total_area = sum([d['area'] for d in detections])
         
-        # Heuristic Risk Scoring
-        score = 0
+        # Base AI Structural Risk Score
+        structural_score = 0
         factors = []
         
-        if max_conf > 0.7:
-             score += 4
-             factors.append("High confidence changes detected")
-        elif max_conf > 0.4:
-             score += 2
-             factors.append("Visible changes detected")
-             
-        if total_area > 10000: # large area
-            score += 3
-            factors.append("Large structural area affected")
+        if change_count > 0:
+            max_conf = max([d['confidence'] for d in detections])
+            total_area = sum([d['area'] for d in detections])
             
-        if change_count > 5:
-            score += 2
-            factors.append("Multiple change zones identified")
+            if max_conf > 0.7:
+                 structural_score += 4
+                 factors.append("High confidence changes detected")
+            elif max_conf > 0.4:
+                 structural_score += 2
+                 factors.append("Visible changes detected")
+                 
+            if total_area > 10000: # large area
+                structural_score += 3
+                factors.append("Large structural area affected")
+                
+            if change_count > 5:
+                structural_score += 2
+                factors.append("Multiple change zones identified")
+                
+            if global_diff_score > 0.2: # High global change
+                structural_score += 2
+                factors.append("Significant global visual difference")
+                
+        # Phase 3: Climate Stress Index (CSI) Calculation
+        csi = 0.0
+        env_multiplier = 1.0
+        
+        if temp is not None and humidity is not None:
+            # High temp + High humidity degrades lime mortar and causes biological growth 
+            # High wind accelerates physical erosion.
+            t_val = float(temp)
+            h_val = float(humidity)
+            w_val = float(wind_speed) if wind_speed is not None else 0.0
             
-        if global_diff_score > 0.2: # High global change
-            score += 2
-            factors.append("Significant global visual difference")
+            # Simple Normalized Index formulation (0 to 10 scale approx)
+            temp_stress = max(0, (t_val - 30.0) * 0.2) # Stress starts climbing after 30C
+            hum_stress = max(0, (h_val - 70.0) * 0.15) # Stress climbs after 70% humidity
+            wind_stress = w_val * 0.1
             
-        # Determine Level
-        if score >= 6:
+            csi = temp_stress + hum_stress + wind_stress
+            
+            # Bound CSI and calculate multiplier (adds up to 50% severity increase)
+            csi = min(10.0, csi)
+            
+            if csi > 6.0:
+                factors.append(f"CRITICAL Environmental Stress Phase (CSI: {csi:.1f})")
+                env_multiplier = 1.6
+            elif csi > 3.0:
+                factors.append(f"Elevated Environmental Stress (CSI: {csi:.1f})")
+                env_multiplier = 1.3
+        
+        # Calculate Final Heritage Risk Score
+        final_score = int(structural_score * env_multiplier)
+        
+        # Guard clause for perfectly safe state
+        if change_count == 0 and csi < 4.0:
+            return {
+                'level': 'SAFE', 
+                'score': final_score, 
+                'description': 'No significant structural changes', 
+                'recommendations': [],
+                'climate_stress_index': csi,
+                'final_heritage_score': final_score
+            }
+            
+        # Determine Level based on the Enhanced Final Score
+        if final_score >= 8:
             level = 'CRITICAL'
             rec = ['Immediate Inspection Required', 'Check structural integrity', 'Alert conservation team']
-        elif score >= 4:
+        elif final_score >= 5:
             level = 'HIGH'
-            rec = ['Schedule inspection soon', 'Monitor daily', 'Verify against weather events']
-        elif score >= 2:
+            rec = ['Schedule inspection soon', 'Monitor daily', 'Check wind/rain logs']
+        elif final_score >= 3:
             level = 'MEDIUM'
             rec = ['Log change', 'Monitor weekly']
         else:
@@ -467,10 +516,13 @@ class StructuralChangeDetector:
             
         return {
             'level': level,
-            'score': score,
-            'description': f"{level} risk detected with {change_count} zones.",
+            'score': final_score,
+            'description': f"{level} risk detected combining {change_count} physical zones and severe environmental constraints.",
             'factors': factors,
-            'recommendations': rec
+            'recommendations': rec,
+            'climate_stress_index': float(csi),
+            'final_heritage_score': float(final_score),
+            'structural_base_score': float(structural_score)
         }
 
     def visualize_results(self, current_img, results):

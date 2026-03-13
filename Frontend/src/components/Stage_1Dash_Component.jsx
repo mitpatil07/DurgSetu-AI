@@ -190,12 +190,12 @@ const Stage1Dashboard = () => {
           </div>
 
           {/* Risk Pie Chart */}
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative hover:border-orange-200 transition-colors">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative hover:border-orange-200 transition-colors flex flex-col">
             <h2 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
               <Activity className="w-6 h-6 text-orange-500" />
               Risk Distribution
             </h2>
-            <div className="h-[300px] relative">
+            <div className="h-[300px] relative w-full flex-grow">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -216,7 +216,7 @@ const Stage1Dashboard = () => {
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
                     itemStyle={{ color: '#1e293b' }}
                   />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontWeight: 600, color: '#475569', fontSize: '13px' }} />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontWeight: 600, color: '#475569', fontSize: '13px', paddingTop: '10px' }} />
                 </PieChart>
               </ResponsiveContainer>
               {/* Center Text */}

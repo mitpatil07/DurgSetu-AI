@@ -113,6 +113,14 @@ const Stage2Dashboard = ({ setActiveStage }) => {
     formData.append('fort_id', selectedFort);
     formData.append('image', selectedFile);
 
+    // Phase 3: Attach Climate Data
+    const activeFortData = fortsData.find(f => f.id.toString() === selectedFort.toString());
+    if (activeFortData && activeFortData.weather) {
+      formData.append('temperature', activeFortData.weather.temp);
+      formData.append('humidity', activeFortData.weather.humidity);
+      formData.append('wind_speed', activeFortData.weather.windSpeed);
+    }
+
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE}/structural-analyses/analyze/`, {
@@ -476,22 +484,26 @@ const FortDetailModal = ({ fort, onClose, onRefresh }) => {
             </div>
 
             {/* Metrics Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white border border-slate-100 rounded-2xl p-5 text-slate-800 shadow-sm flex flex-col justify-center">
-                <div className="text-2xl font-bold mb-1 text-orange-600">{fort.changesDetected}</div>
-                <div className="text-xs font-semibold text-slate-500 tracking-normal">Anomalies Detected</div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 text-slate-800 shadow-sm flex flex-col justify-center">
+                <div className="text-xl md:text-2xl font-bold mb-1 text-orange-600 truncate">{fort.detailedAnalysis.environmental_data?.climate_stress_index?.toFixed(1) || '0.0'}</div>
+                <div className="text-[10px] md:text-xs font-semibold text-slate-500 tracking-normal uppercase">Climate Stress</div>
               </div>
-              <div className="bg-white border border-slate-100 rounded-2xl p-5 text-slate-800 shadow-sm flex flex-col justify-center">
-                <div className="text-2xl font-bold mb-1 text-orange-600">{fort.riskScore}<span className="text-lg text-slate-300">/10</span></div>
-                <div className="text-xs font-semibold text-slate-500 tracking-normal">Severity Score</div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 text-slate-800 shadow-sm flex flex-col justify-center">
+                <div className="text-xl md:text-2xl font-bold mb-1 text-orange-600 truncate">{fort.changesDetected}</div>
+                <div className="text-[10px] md:text-xs font-semibold text-slate-500 tracking-normal uppercase">Anomalies Detected</div>
               </div>
-              <div className="bg-white border border-slate-100 rounded-2xl p-5 text-slate-800 shadow-sm flex flex-col justify-center">
-                <div className="text-2xl font-bold mb-1 text-orange-600">{fort.structuralHealth}<span className="text-lg text-slate-300">%</span></div>
-                <div className="text-xs font-semibold text-slate-500 tracking-normal">SSIM Health Index</div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 text-slate-800 shadow-sm flex flex-col justify-center">
+                <div className="text-xl md:text-2xl font-bold mb-1 text-orange-600 truncate">{fort.detailedAnalysis.environmental_data?.final_heritage_risk_score || fort.riskScore}<span className="text-sm md:text-lg text-slate-300">/10</span></div>
+                <div className="text-[10px] md:text-xs font-semibold text-slate-500 tracking-normal uppercase">Final Severity</div>
               </div>
-              <div className="bg-white border border-slate-100 rounded-2xl p-5 text-slate-800 shadow-sm flex flex-col justify-center">
-                <div className="text-2xl md:text-3xl font-bold mb-1 text-orange-600 truncate">{fort.totalArea.toLocaleString()}</div>
-                <div className="text-xs font-semibold text-slate-500 tracking-normal">Impact Area (px)</div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 text-slate-800 shadow-sm flex flex-col justify-center">
+                <div className="text-xl md:text-2xl font-bold mb-1 text-orange-600 truncate">{fort.structuralHealth}<span className="text-sm md:text-lg text-slate-300">%</span></div>
+                <div className="text-[10px] md:text-xs font-semibold text-slate-500 tracking-normal uppercase">SSIM Index</div>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 text-slate-800 shadow-sm flex flex-col justify-center col-span-2 md:col-span-1">
+                <div className="text-xl md:text-2xl font-bold mb-1 text-orange-600 truncate">{fort.totalArea.toLocaleString()}</div>
+                <div className="text-[10px] md:text-xs font-semibold text-slate-500 tracking-normal uppercase">Impact (px)</div>
               </div>
             </div>
 
