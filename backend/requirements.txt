@@ -25,4 +25,6 @@ tifffile>=2023.7.0
 
 google-genai>=0.3.0
 reportlab>=4.0.0
-#hii adu
+#hii adu 
+
+#ijfkdmedsiojkm,riodfjskm,
