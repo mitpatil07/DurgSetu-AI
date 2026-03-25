@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Calendar, Activity, Shield, TrendingUp, Eye, AlertCircle, LogIn, LogOut, User } from 'lucide-react';
+import { Crown, Calendar, Activity, Shield, TrendingUp, Eye, AlertCircle, LogIn, LogOut, User, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Custom hook for fetching real-time fort data
@@ -198,6 +198,15 @@ const RealtimeFortDashboard = () => {
                 </span>
               </div>
 
+              {/* ── REPORT DAMAGE BUTTON (always visible, navbar) ── */}
+              <button
+                onClick={() => navigate('/report')}
+                className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer"
+              >
+                <Camera className="w-4 h-4" />
+                Report Damage
+              </button>
+
               {/* Auth Buttons */}
               {token ? (
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
@@ -334,7 +343,7 @@ const RealtimeFortDashboard = () => {
           </div>
 
           {/* Action Navigation Panels */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Stage 1 Panel */}
             <button
               onClick={() => navigate('/stage1')}
@@ -376,6 +385,33 @@ const RealtimeFortDashboard = () => {
             </button>
           </div>
 
+          {/* ── REPORT DAMAGE PANEL (full width, below Stage 1 & 2) ── */}
+          <button
+            onClick={() => navigate('/report')}
+            className="group relative w-full bg-white border-2 border-dashed border-orange-200 hover:border-orange-400 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10 text-left cursor-pointer mb-8"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-50 to-red-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-700"></div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+              {/* Icon */}
+              <div className="bg-orange-100 group-hover:bg-orange-200 w-fit p-4 rounded-2xl border border-orange-200 transition-colors shrink-0">
+                <Camera className="w-8 h-8 text-orange-600" />
+              </div>
+              {/* Text */}
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="text-xl md:text-2xl font-bold text-slate-800">Report Fort Damage</h3>
+                  <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">Public</span>
+                </div>
+                <p className="text-slate-500 font-medium">
+                  Spotted a crack, wall damage, or structural issue? Upload photos and submit a report — our AI and admin team will review it.
+                </p>
+              </div>
+              {/* CTA */}
+              <div className="inline-flex items-center gap-2 text-sm font-bold text-orange-500 group-hover:text-orange-600 tracking-wide shrink-0 transition-colors">
+                SUBMIT REPORT <Camera className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+          </button>
 
         </div>
       </div>

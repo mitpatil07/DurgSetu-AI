@@ -7,6 +7,7 @@ import AdminProfile from './components/AdminProfile';
 import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
+import UserReport from './components/UserReport';   // ← ADD THIS
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/" element={<MainDashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/report" element={<UserReport />} />  {/* ← ADD THIS */}
         <Route
           path="/stage1"
           element={

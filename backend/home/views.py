@@ -3,13 +3,14 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 from django.db.models import Count, Avg
 import google.generativeai as genai
-from .models import Fort, FortImage, StructuralAnalysis
+from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage
 from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer
 from .structural_detector import StructuralChangeDetector
 from .report_generator import generate_pdf_report
@@ -186,91 +187,59 @@ class FortViewSet(viewsets.ModelViewSet):
         # 1. Trend Data (Historical Risk Scores)
         # Get data for the last 6 months
         six_months_ago = timezone.now() - datetime.timedelta(days=180)
-        mine = request.query_params.get('mine', None)
-        
-        trend_queryset = StructuralAnalysis.objects.filter(
+        trend_data_qs = StructuralAnalysis.objects.filter(
             analysis_date__gte=six_months_ago
-        )
-        if mine == 'true' and request.user.is_authenticated:
-            trend_queryset = trend_queryset.filter(verified_by=request.user.username)
-            
-        trend_queryset = trend_queryset.annotate(
-            month=TruncMonth('analysis_date')
-        ).values('month').annotate(
+        ).annotate(month=TruncMonth('analysis_date')).values('month').annotate(
             avg_risk=Avg('risk_score'),
-            avg_health=Avg('ssim_score'),
             count=Count('id')
         ).order_by('month')
 
-        trend_data = []
-        if trend_queryset.exists():
-            for entry in trend_queryset:
-                trend_data.append({
-                    'name': entry['month'].strftime('%b'),
-                    'risk': round(entry['avg_risk'], 1),
-                    'health': round(entry['avg_health'] * 100, 1)
-                })
-        else:
-            # Fallback for empty DB: show empty chart or current month placeholder
-            trend_data = [{'name': timezone.now().strftime('%b'), 'risk': 0, 'health': 100}]
+        trend_data = [
+            {
+                'month': item['month'].strftime('%b %Y'),
+                'avg_risk_score': round(item['avg_risk'] or 0, 1),
+                'analysis_count': item['count']
+            }
+            for item in trend_data_qs
+        ]
 
-        # 2. Leaderboard
-        forts = Fort.objects.all()
+        # 2. Fort Leaderboard (sorted by latest risk score)
+        forts = Fort.objects.prefetch_related('analyses').all()
         leaderboard = []
         for fort in forts:
-            latest = StructuralAnalysis.objects.filter(fort=fort)
-            if mine == 'true' and request.user.is_authenticated:
-                latest = latest.filter(verified_by=request.user.username)
-            latest = latest.order_by('-analysis_date').first()
-            
+            latest = fort.analyses.order_by('-analysis_date').first()
             if latest:
                 leaderboard.append({
-                    'id': fort.id,
-                    'name': fort.name,
-                    'location': fort.location,
-                    'health': round(latest.ssim_score * 100),
-                    'risk_score': latest.risk_score,
-                    'changes': latest.changes_detected,
-                    'status': latest.risk_level
+                    'fort_id': fort.id,
+                    'fort_name': fort.name,
+                    'latest_risk_level': latest.risk_level,
+                    'latest_risk_score': latest.risk_score,
+                    'latest_analysis_date': latest.analysis_date.strftime('%Y-%m-%d'),
+                    'total_analyses': fort.analyses.count(),
                 })
-            else:
-                # Include forts with no analysis yet
-                 leaderboard.append({
-                    'id': fort.id,
-                    'name': fort.name,
-                    'location': fort.location,
-                    'health': 100, # Assume healthy if no data
-                    'risk_score': 0,
-                    'changes': 0,
-                    'status': 'SAFE'
-                })
-        
-        # Sort by Health (Descending)
-        leaderboard.sort(key=lambda x: x['health'], reverse=True)
-        
-        # 3. Recent Activity (Critical/High only)
+
+        leaderboard.sort(key=lambda x: x['latest_risk_score'], reverse=True)
+
+        # 3. Recent Critical/High Activity
         recent_critical = StructuralAnalysis.objects.filter(
             risk_level__in=['HIGH', 'CRITICAL']
-        )
-        if mine == 'true' and request.user.is_authenticated:
-            recent_critical = recent_critical.filter(verified_by=request.user.username)
-            
-        recent_critical = recent_critical.order_by('-analysis_date')[:5]
-        
-        critical_alerts = []
-        for analysis in recent_critical:
-            critical_alerts.append({
-                'id': analysis.id,
-                'fort_name': analysis.fort.name,
-                'risk_level': analysis.risk_level,
-                'date': analysis.analysis_date,
-                'message': f"Detected {analysis.changes_detected} structural changes."
-            })
+        ).order_by('-analysis_date')[:5]
+
+        critical_activity = [
+            {
+                'fort_name': a.fort.name,
+                'risk_level': a.risk_level,
+                'risk_score': a.risk_score,
+                'changes_detected': a.changes_detected,
+                'date': a.analysis_date.strftime('%Y-%m-%d %H:%M'),
+            }
+            for a in recent_critical
+        ]
 
         return Response({
             'trend_data': trend_data,
             'leaderboard': leaderboard,
-            'critical_alerts': critical_alerts
+            'recent_critical_activity': critical_activity,
         })
 
 
@@ -393,7 +362,6 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             detector = StructuralChangeDetector()
             
             # --- Auto-Training / ML Feedback Loop ---
-            # Calculate historical false positive rate for this fort to dynamically tune model sensitivity
             if request.user.is_authenticated:
                 history_qs = StructuralAnalysis.objects.filter(fort=fort, is_verified=True, verified_by=request.user.username)
             else:
@@ -407,7 +375,6 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
                 fp_rate = false_positives / total_verifications
                 
             detector.update_thresholds_from_history(fp_rate)
-            # ----------------------------------------
             
             # Load images
             past_img = detector.load_image_from_file(previous_image.image)
@@ -478,3 +445,59 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
                 {'error': f'Analysis failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+# ─────────────────────────────────────────────
+# User Damage Report (Public Submission)
+# ─────────────────────────────────────────────
+
+class UserReportView(APIView):
+    permission_classes = [AllowAny]  # Public — no login required
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # Validate required fields
+            fort_name = request.data.get('fort_name', '').strip()
+            location = request.data.get('location', '').strip()
+            damage_type = request.data.get('damage_type', '').strip()
+            severity = request.data.get('severity', '').strip()
+
+            if not fort_name:
+                return Response({'error': 'Fort name is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not location:
+                return Response({'error': 'Location is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not damage_type:
+                return Response({'error': 'Damage type is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not severity:
+                return Response({'error': 'Severity level is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not request.FILES:
+                return Response({'error': 'At least one image is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Save the report
+            report = FortDamageReport.objects.create(
+                fort_name=fort_name,
+                location=location,
+                damage_type=damage_type,
+                severity=severity,
+                description=request.data.get('description', ''),
+                reporter_name=request.data.get('reporter_name', ''),
+                reporter_contact=request.data.get('reporter_contact', ''),
+            )
+
+            # Save each uploaded image
+            for key, file in request.FILES.items():
+                ReportImage.objects.create(report=report, image=file)
+
+            logger.info(f"New damage report submitted: {fort_name} - {damage_type} ({severity})")
+
+            return Response({
+                'message': 'Report submitted successfully',
+                'report_id': report.id,
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            logger.error(f"Error saving user report: {str(e)}", exc_info=True)
+            return Response({'error': 'Something went wrong. Please try again.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request, *args, **kwargs):
+        return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)

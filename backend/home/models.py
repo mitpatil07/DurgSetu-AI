@@ -108,3 +108,84 @@ class StructuralAnalysis(models.Model):
     @property
     def recommendations(self):
         return self.risk_assessment.get('recommendations', [])
+
+
+# ─────────────────────────────────────────────
+# User Damage Report (Public Submission)
+# ─────────────────────────────────────────────
+
+class FortDamageReport(models.Model):
+    DAMAGE_TYPES = [
+        ('Structural Crack', 'Structural Crack'),
+        ('Wall Damage', 'Wall Damage'),
+        ('Foundation Issue', 'Foundation Issue'),
+        ('Water Seepage', 'Water Seepage'),
+        ('Stone Erosion', 'Stone Erosion'),
+        ('Vegetation Overgrowth', 'Vegetation Overgrowth'),
+        ('Vandalism', 'Vandalism'),
+        ('Collapse Risk', 'Collapse Risk'),
+        ('Other', 'Other'),
+    ]
+
+    SEVERITY_LEVELS = [
+        ('Minor', 'Minor'),
+        ('Moderate', 'Moderate'),
+        ('Severe', 'Severe'),
+        ('Critical', 'Critical'),
+    ]
+
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Reviewed', 'Reviewed'),
+        ('Action Taken', 'Action Taken'),
+        ('Dismissed', 'Dismissed'),
+    ]
+
+    fort_name = models.CharField(max_length=200)
+    location = models.CharField(max_length=300)
+    damage_type = models.CharField(max_length=100, choices=DAMAGE_TYPES)
+    severity = models.CharField(max_length=50, choices=SEVERITY_LEVELS)
+    description = models.TextField(blank=True, null=True)
+
+    # Reporter info (optional — public user)
+    reporter_name = models.CharField(max_length=100, blank=True, null=True)
+    reporter_contact = models.CharField(max_length=100, blank=True, null=True)
+
+    # Admin review fields
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
+    admin_notes = models.TextField(blank=True, null=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.CharField(max_length=100, null=True, blank=True)
+
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+        verbose_name = 'Fort Damage Report'
+        verbose_name_plural = 'Fort Damage Reports'
+
+    def __str__(self):
+        return f"{self.fort_name} - {self.damage_type} ({self.severity}) - {self.submitted_at.strftime('%Y-%m-%d')}"
+
+    @property
+    def image_count(self):
+        return self.images.count()
+
+    @property
+    def is_reviewed(self):
+        return self.status != 'Pending'
+
+
+class ReportImage(models.Model):
+    report = models.ForeignKey(FortDamageReport, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(
+        upload_to='damage_reports/',
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])]
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['uploaded_at']
+
+    def __str__(self):
+        return f"Image for {self.report.fort_name} report #{self.report.id}"
