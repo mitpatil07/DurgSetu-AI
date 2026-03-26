@@ -334,7 +334,7 @@ const RealtimeFortDashboard = () => {
           </div>
 
           {/* Action Navigation Panels */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {/* Stage 1 Panel */}
             <button
               onClick={() => navigate('/stage1')}
@@ -370,6 +370,26 @@ const RealtimeFortDashboard = () => {
                   <p className="text-orange-100 font-medium mb-4">Upload new scans, execute deep structural differencing, and dispatch high-alert emails.</p>
                   <div className="inline-flex items-center gap-2 text-sm font-bold text-white tracking-wide">
                     LAUNCH STAGE 2 <Shield className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {/* Stage 3 (Sevak Reports) Panel */}
+            <button
+              onClick={() => navigate('/admin/reports')}
+              className="group relative bg-[#4A3218] border border-[#7A6040] rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 text-left w-full cursor-pointer"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#7A1A1A] rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-colors group-hover:bg-[#922020] opacity-40"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between gap-12">
+                <div className="bg-[#2E1E0E] w-fit p-4 rounded-2xl border border-[#7A6040] shadow-inner group-hover:border-[#BF9020] transition-colors">
+                  <AlertCircle className="w-8 h-8 text-[#DDB840] group-hover:text-[#F5E090]" />
+                </div>
+                <div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2">Sevak Reports</h3>
+                  <p className="text-[#DDD0A8] font-medium mb-4">View field reports, visual evidence, and manage issue resolutions across forts.</p>
+                  <div className="inline-flex items-center gap-2 text-sm font-bold text-[#DDB840] tracking-wide">
+                    MANAGE REPORTS <AlertCircle className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </div>
               </div>

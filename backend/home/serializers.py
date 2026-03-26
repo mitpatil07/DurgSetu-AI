@@ -1,13 +1,11 @@
-# api/serializers.py
 from rest_framework import serializers
-from .models import Fort, FortImage, StructuralAnalysis
+from .models import Fort, FortImage, StructuralAnalysis, IssueReport, DurgSevakReport, ReportStatusHistory
 
 class FortImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = FortImage
         fields = ['id', 'fort', 'image', 'uploaded_at', 'description', 'is_reference']
         read_only_fields = ['uploaded_at']
-
 
 class StructuralAnalysisSerializer(serializers.ModelSerializer):
     previous_image_url = serializers.SerializerMethodField()
@@ -48,18 +46,15 @@ class StructuralAnalysisSerializer(serializers.ModelSerializer):
         return None
     
     def get_risk_assessment(self, obj):
-        # Extract risk assessment from analysis_results JSON
         if obj.analysis_results and isinstance(obj.analysis_results, dict):
             return obj.analysis_results.get('risk_assessment', {})
         return {}
     
     def get_recommendations(self, obj):
-        # Extract recommendations from risk assessment
         if obj.analysis_results and isinstance(obj.analysis_results, dict):
             risk_assessment = obj.analysis_results.get('risk_assessment', {})
             return risk_assessment.get('recommendations', [])
         return []
-
 
 class FortSerializer(serializers.ModelSerializer):
     latest_image = serializers.SerializerMethodField()
@@ -76,7 +71,6 @@ class FortSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
     
     def get_latest_image(self, obj):
-        # Get from property or query
         latest = obj.latest_image if hasattr(obj, 'latest_image') else obj.images.order_by('-uploaded_at').first()
         if latest:
             request = self.context.get('request')
@@ -89,11 +83,9 @@ class FortSerializer(serializers.ModelSerializer):
         return None
     
     def get_analysis_count(self, obj):
-        # Changed from structural_analyses to analyses
         return obj.analyses.count()
     
     def get_latest_analysis(self, obj):
-        # Changed from structural_analyses to analyses
         latest = obj.analyses.order_by('-analysis_date').first()
         if latest:
             return {
@@ -106,3 +98,49 @@ class FortSerializer(serializers.ModelSerializer):
                 'analysis_date': latest.analysis_date
             }
         return None
+
+class IssueReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IssueReport
+        fields = ['id', 'fort_name', 'image', 'suggestion', 'reported_by', 'created_at']
+        read_only_fields = ['id', 'reported_by', 'created_at']
+
+# ─── DURGSEVAK REPORT SERIALIZERS ────────────────────────────────────────
+
+class StatusHistorySerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model  = ReportStatusHistory
+        fields = ["id", "status", "status_display", "notes", "changed_by", "changed_at"]
+
+class DurgSevakReportSerializer(serializers.ModelSerializer):
+    status_display   = serializers.CharField(source="get_status_display",   read_only=True)
+    severity_display = serializers.CharField(source="get_severity_display", read_only=True)
+    history          = StatusHistorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model  = DurgSevakReport
+        fields = [
+            "id", "reference_number",
+            "sevak_name", "sevak_email", "sevak_phone",
+            "fort_name", "fort_section",
+            "severity", "severity_display",
+            "description", "suggestions", "image",
+            "status", "status_display",
+            "admin_notes", "actioned_by",
+            "submitted_at", "updated_at",
+            "history",
+        ]
+        read_only_fields = [
+            "id", "reference_number",
+            "severity_display", "status_display",
+            "submitted_at", "updated_at",
+            "history",
+        ]
+
+class StatusUpdateSerializer(serializers.Serializer):
+    """Used specifically for PATCH /reports/<pk>/status/"""
+    status      = serializers.ChoiceField(choices=DurgSevakReport.STATUS_CHOICES)
+    admin_notes = serializers.CharField(required=False, allow_blank=True, default="")
+    actioned_by = serializers.CharField(required=False, allow_blank=True, default="")

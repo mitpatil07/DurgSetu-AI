@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
 import os
+import uuid
 
 class Fort(models.Model):
     name = models.CharField(max_length=200)
@@ -108,3 +109,89 @@ class StructuralAnalysis(models.Model):
     @property
     def recommendations(self):
         return self.risk_assessment.get('recommendations', [])
+
+class IssueReport(models.Model):
+    fort_name = models.CharField(max_length=200)
+    image = models.ImageField(upload_to='issue_reports/')
+    suggestion = models.TextField()
+    reported_by = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='issue_reports')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"Issue at {self.fort_name} by {self.reported_by.username}"
+
+class DurgSevakReport(models.Model):
+
+    SEVERITY_CHOICES = [
+        ("low",      "Low"),
+        ("medium",   "Medium"),
+        ("high",     "High"),
+        ("critical", "Critical"),
+    ]
+    STATUS_CHOICES = [
+        ("submitted",    "Submitted"),
+        ("under_review", "Under Review"),
+        ("in_progress",  "In Progress"),
+        ("resolved",     "Resolved"),
+        ("dismissed",    "Dismissed / No Action"),
+    ]
+
+    # ── Identity ──────────────────────────────
+    reference_number = models.CharField(max_length=20, unique=True, editable=False)
+
+    # ── DurgSevak Info ────────────────────────
+    sevak_name  = models.CharField(max_length=200)
+    sevak_email = models.EmailField()
+    sevak_phone = models.CharField(max_length=20, blank=True)
+
+    # ── Fort & Location ───────────────────────
+    fort_name    = models.CharField(max_length=200)
+    fort_section = models.CharField(max_length=200)
+    severity     = models.CharField(max_length=20, choices=SEVERITY_CHOICES)
+
+    # ── Damage Report ─────────────────────────
+    description  = models.TextField()
+    suggestions  = models.TextField(blank=True)
+    image        = models.ImageField(upload_to="reports/%Y/%m/", blank=True, null=True)
+
+    # ── Authority Action ──────────────────────
+    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default="submitted")
+    admin_notes = models.TextField(
+        blank=True,
+        help_text="Notes sent to the DurgSevak when status changes"
+    )
+    actioned_by = models.CharField(max_length=200, blank=True)   # authority officer name
+
+    # ── Timestamps ────────────────────────────
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-submitted_at"]
+        verbose_name = "DurgSevak Report"
+
+    def __str__(self):
+        return f"{self.reference_number} — {self.fort_name} ({self.get_severity_display()})"
+
+    def save(self, *args, **kwargs):
+        if not self.reference_number:
+            self.reference_number = "DS-" + uuid.uuid4().hex[:6].upper()
+        super().save(*args, **kwargs)
+
+
+class ReportStatusHistory(models.Model):
+    """Tracks every status change for the timeline view."""
+    report       = models.ForeignKey(DurgSevakReport, on_delete=models.CASCADE, related_name="history")
+    status       = models.CharField(max_length=20, choices=DurgSevakReport.STATUS_CHOICES)
+    notes        = models.TextField(blank=True)
+    changed_by   = models.CharField(max_length=200, blank=True)
+    changed_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["changed_at"]
+
+    def __str__(self):
+        return f"{self.report.reference_number} → {self.status} at {self.changed_at}"

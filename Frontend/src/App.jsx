@@ -7,12 +7,14 @@ import AdminProfile from './components/AdminProfile';
 import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
+import ReportIssue from './components/ReportIssue';
+import ReportsAdmin from './components/ReportsAdmin';
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MainDashboard />} />
+        <Route path="/" element={<ProtectedRoute><MainDashboard /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
@@ -36,6 +38,22 @@ const App = () => {
           element={
             <ProtectedRoute>
               <AdminProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/report-issue"
+          element={
+            <ProtectedRoute>
+              <ReportIssue />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute>
+              <ReportsAdmin />
             </ProtectedRoute>
           }
         />

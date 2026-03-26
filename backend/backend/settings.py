@@ -163,5 +163,7 @@ EMAIL_HOST_USER = 'baapmanus.bm@gmail.com'  # Your Gmail address
 EMAIL_HOST_PASSWORD = 'gfgm ucjq ifue gyec'  # Your Gmail App Password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+AUTHORITY_EMAIL = 'baapmanus.bm@gmail.com'
+ADMIN_DASHBOARD_URL = 'http://localhost:5173/admin/reports'
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCdFnymtfQuyTm05-WaZiErsD8LtLRywxM")

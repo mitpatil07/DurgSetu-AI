@@ -5,12 +5,13 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from django.conf import settings
 from django.db.models import Count, Avg
 import google.generativeai as genai
-from .models import Fort, FortImage, StructuralAnalysis
-from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer
+from .models import Fort, FortImage, StructuralAnalysis, IssueReport, DurgSevakReport
+from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer, IssueReportSerializer, DurgSevakReportSerializer
+from rest_framework.parsers import MultiPartParser, FormParser
 from .structural_detector import StructuralChangeDetector
 from .report_generator import generate_pdf_report
 from datetime import datetime
@@ -95,12 +96,18 @@ class RegisterView(generics.CreateAPIView):
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
             
+        role = request.data.get('role', 'durgsevak')
         user = User.objects.create_user(username=username, email=email, password=password)
+        if role == 'admin':
+            user.is_staff = True
+            user.save()
+            
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
             'user_id': user.pk,
-            'email': user.email
+            'email': user.email,
+            'role': 'admin' if user.is_staff else 'durgsevak'
         }, status=status.HTTP_201_CREATED)
 
 
@@ -113,10 +120,12 @@ class LoginView(generics.GenericAPIView):
         user = authenticate(username=username, password=password)
         if user:
             token, created = Token.objects.get_or_create(user=user)
+            role = 'admin' if user.is_staff else 'durgsevak'
             return Response({
                 'token': token.key,
                 'user_id': user.pk,
-                'email': user.email
+                'email': user.email,
+                'role': role
             })
         else:
             return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)
@@ -478,3 +487,198 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
                 {'error': f'Analysis failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class IssueReportViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = IssueReport.objects.all()
+    serializer_class = IssueReportSerializer
+    
+    def perform_create(self, serializer):
+        from django.core.mail import send_mail
+        from django.conf import settings
+        import threading
+        
+        report = serializer.save(reported_by=self.request.user)
+        
+        # We need the request to build the absolute URI, saving it to a local var
+        request = self.request 
+        
+        def send_notification():
+            subject = f"[DurgSetu] New Issue Report for {report.fort_name}"
+            image_url = request.build_absolute_uri(report.image.url) if report.image else 'No image'
+            message = f"A new issue report was submitted by {report.reported_by.username} for {report.fort_name}.\n\nSuggestion/Observation:\n{report.suggestion}\n\nImage URL: {image_url}"
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'agent@durgsetu.ai')
+            recipient_list = [getattr(settings, 'EMAIL_HOST_USER', from_email)]
+            try:
+                send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+                logger.info(f"Report Issue email sent for {report.fort_name}")
+            except Exception as e:
+                logger.error(f"Failed to send email for issue report: {e}")
+                
+        threading.Thread(target=send_notification).start()
+
+# ─── DURGSEVAK REPORT SYSTEM VIEWS ────────────────────────────────────────
+
+from rest_framework.views import APIView
+from .models import ReportStatusHistory
+from .serializers import StatusUpdateSerializer
+from .action_suggester import get_action_suggestions
+from .email_service import send_authority_notification, send_sevak_status_update
+
+class ReportCreateView(generics.CreateAPIView):
+    """
+    POST /api/reports/
+    DurgSevak submits a new report (multipart/form-data with optional image).
+    """
+    serializer_class = DurgSevakReportSerializer
+    parser_classes   = [MultiPartParser, FormParser]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        report = serializer.save()
+
+        # Create initial timeline history entry
+        ReportStatusHistory.objects.create(
+            report=report,
+            status="submitted",
+            notes="Report submitted by DurgSevak.",
+            changed_by=report.sevak_name,
+        )
+
+        # Generate action suggestions for email
+        suggestions = get_action_suggestions(report)
+
+        # Fire authority notification email
+        try:
+            threading.Thread(target=send_authority_notification, args=(report, suggestions)).start()
+            logger.info(f"Authority notification sent for {report.reference_number}")
+        except Exception as e:
+            logger.error(f"Authority email failed for {report.reference_number}: {e}")
+
+        return Response(
+            {
+                "reference_number": report.reference_number,
+                "message": "Report submitted. Authorities have been notified.",
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class ReportListView(generics.ListAPIView):
+    """
+    GET /api/reports/list/
+    Returns all reports ordered by date (newest first).
+    Supports query params: ?severity=critical&status=submitted&search=raigad
+    """
+    serializer_class = DurgSevakReportSerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = DurgSevakReport.objects.all()
+        sev    = self.request.query_params.get("severity")
+        st     = self.request.query_params.get("status")
+        search = self.request.query_params.get("search", "").strip()
+
+        from django.db import models
+        if sev and sev != 'all':    qs = qs.filter(severity=sev)
+        if st and st != 'all':     qs = qs.filter(status=st)
+        if search: qs = qs.filter(
+            models.Q(fort_name__icontains=search) |
+            models.Q(fort_section__icontains=search) |
+            models.Q(sevak_name__icontains=search) |
+            models.Q(reference_number__icontains=search)
+        )
+        return qs
+
+
+class ReportDetailView(generics.RetrieveAPIView):
+    """
+    GET /api/reports/<pk>/
+    Full report detail including history timeline.
+    """
+    queryset         = DurgSevakReport.objects.all()
+    serializer_class = DurgSevakReportSerializer
+
+
+class ReportStatusUpdateView(APIView):
+    """
+    PATCH /api/reports/<pk>/status/
+    Authority updates report status.
+    """
+    # permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk, *args, **kwargs):
+        try:
+            report = DurgSevakReport.objects.get(pk=pk)
+        except DurgSevakReport.DoesNotExist:
+            return Response({"detail": "Report not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = StatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        old_status = report.status
+        report.status      = data["status"]
+        report.admin_notes = data.get("admin_notes", "")
+        report.actioned_by = data.get("actioned_by", "")
+        report.save()
+
+        # Record history
+        ReportStatusHistory.objects.create(
+            report=report,
+            status=report.status,
+            notes=report.admin_notes,
+            changed_by=report.actioned_by or "Authority",
+        )
+
+        # Email DurgSevak only if status changed
+        if report.status != old_status:
+            try:
+                threading.Thread(target=send_sevak_status_update, args=(report,)).start()
+                logger.info(
+                    f"Status update email sent to {report.sevak_email} "
+                    f"for {report.reference_number}"
+                )
+            except Exception as e:
+                logger.error(
+                    f"Sevak status email failed for {report.reference_number}: {e}"
+                )
+
+        return Response(
+            DurgSevakReportSerializer(report).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class ActionSuggestionsView(APIView):
+    """
+    GET /api/reports/<pk>/suggestions/
+    Returns AI-generated action suggestions for a report.
+    """
+    def get(self, request, pk, *args, **kwargs):
+        try:
+            report = DurgSevakReport.objects.get(pk=pk)
+        except DurgSevakReport.DoesNotExist:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        suggestions = get_action_suggestions(report)
+        return Response({"suggestions": suggestions, "severity": report.severity})
+
+
+class ReportStatsView(APIView):
+    """
+    GET /api/reports/stats/
+    Returns aggregate stats for the dashboard header.
+    """
+    def get(self, request, *args, **kwargs):
+        total    = DurgSevakReport.objects.count()
+        critical = DurgSevakReport.objects.filter(severity="critical").count()
+        pending  = DurgSevakReport.objects.filter(status="submitted").count()
+        resolved = DurgSevakReport.objects.filter(status="resolved").count()
+        return Response({
+            "total":    total,
+            "critical": critical,
+            "pending":  pending,
+            "resolved": resolved,
+        })
