@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, AlertCircle, Loader, UserPlus, User } from 'lucide-react';
 
 const AdminLogin = () => {
-    const [mode, setMode] = useState('login'); // 'login' or 'register'
+    const [mode, setMode] = useState('login'); 
     const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
