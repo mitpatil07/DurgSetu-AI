@@ -29,10 +29,18 @@ const Login = () => {
             const data = await response.json();
 
             if (response.ok) {
+                // Block admin accounts from using the user login portal
+                if (data.is_staff) {
+                    setError('User not found');
+                    return;
+                }
+
                 localStorage.setItem('auth_token', data.token);
                 localStorage.setItem('user_email', data.email);
                 localStorage.setItem('user_id', data.user_id);
-                navigate('/');
+                localStorage.setItem('username', data.username || data.email);
+                localStorage.setItem('is_staff', 'false');
+                navigate('/user/dashboard');
             } else {
                 setError(data.error || 'Login failed');
             }
@@ -65,18 +73,18 @@ const Login = () => {
                             Preserving Heritage with <span className="text-orange-200">Intelligence.</span>
                         </h2>
                         <p className="text-orange-100 text-lg leading-relaxed mb-8">
-                            Sign in to access real-time structural analytics, manage verification workflows, and safeguard historical monuments.
+                            Sign in to access damage reporting, real-time structural analytics, and safeguard historical monuments.
                         </p>
 
                         <div className="bg-black/10 backdrop-blur-md rounded-2xl p-5 border border-white/10">
                             <p className="text-sm font-medium text-orange-50 italic">
-                                "Forts are the foundation of the kingdom" <br/>- Chhatrapati Shivaji Maharaj
+                                "Forts are the foundation of the kingdom" <br />- Chhatrapati Shivaji Maharaj
                             </p>
                         </div>
                     </div>
 
                     <div className="relative z-10 text-sm font-medium text-orange-200/80 mt-8 md:mt-0">
-                        © 2026 Admin Portal
+                        © 2026 User Portal
                     </div>
                 </div>
 
@@ -85,7 +93,7 @@ const Login = () => {
                     <div className="max-w-md w-full mx-auto">
                         <div className="mb-10">
                             <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome Back</h2>
-                            <p className="text-slate-500 font-medium">Please enter your admin credentials to continue.</p>
+                            <p className="text-slate-500 font-medium">Enter your user credentials to access the dashboard.</p>
                         </div>
 
                         {error && (
@@ -109,7 +117,7 @@ const Login = () => {
                                         onChange={handleChange}
                                         required
                                         className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-slate-400"
-                                        placeholder="admin@durgsetu.ai"
+                                        placeholder="Email or Username"
                                     />
                                 </div>
                             </div>
@@ -140,19 +148,19 @@ const Login = () => {
                                 disabled={loading}
                                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl shadow-[0_8px_20px_-6px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(249,115,22,0.6)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:hover:translate-y-0 disabled:active:scale-100 mt-4"
                             >
-                                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <span>Access Admin Dashboard</span>}
+                                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <span>Sign In</span>}
                             </button>
                         </form>
 
                         <div className="mt-10 pt-6 border-t border-slate-100 text-center text-sm font-medium text-slate-500 flex flex-col items-center gap-4">
                             <p>
-                                Don't have an admin account?{' '}
+                                Don't have an account?{' '}
                                 <button onClick={() => navigate('/register')} className="text-orange-600 hover:text-orange-700 font-bold transition-colors">
                                     Register here
                                 </button>
                             </p>
-                            <button onClick={() => navigate('/')} className="text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1 cursor-pointer">
-                                Return to Landing Page
+                            <button onClick={() => navigate('/login')} className="text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1 cursor-pointer">
+                                ← Back to Role Selection
                             </button>
                         </div>
                     </div>

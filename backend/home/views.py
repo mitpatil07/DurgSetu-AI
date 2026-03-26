@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, generics, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
@@ -11,7 +11,7 @@ from django.conf import settings
 from django.db.models import Count, Avg
 import google.generativeai as genai
 from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage
-from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer
+from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer, FortDamageReportSerializer, ReportImageSerializer
 from .structural_detector import StructuralChangeDetector
 from .report_generator import generate_pdf_report
 from datetime import datetime
@@ -101,6 +101,7 @@ class RegisterView(generics.CreateAPIView):
         return Response({
             'token': token.key,
             'user_id': user.pk,
+            'username': user.username,
             'email': user.email
         }, status=status.HTTP_201_CREATED)
 
@@ -117,7 +118,9 @@ class LoginView(generics.GenericAPIView):
             return Response({
                 'token': token.key,
                 'user_id': user.pk,
-                'email': user.email
+                'username': user.username,
+                'email': user.email,
+                'is_staff': user.is_staff
             })
         else:
             return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)
@@ -448,56 +451,60 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
 
 
 # ─────────────────────────────────────────────
-# User Damage Report (Public Submission)
+# Role-Based Damage Reports
 # ─────────────────────────────────────────────
 
-class UserReportView(APIView):
-    permission_classes = [AllowAny]  # Public — no login required
+class UserDamageReportViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FortDamageReportSerializer
 
-    def post(self, request, *args, **kwargs):
+    def get_queryset(self):
+        return FortDamageReport.objects.filter(user=self.request.user).order_by('-submitted_at')
+
+    def create(self, request, *args, **kwargs):
         try:
-            # Validate required fields
-            fort_name = request.data.get('fort_name', '').strip()
-            location = request.data.get('location', '').strip()
-            damage_type = request.data.get('damage_type', '').strip()
-            severity = request.data.get('severity', '').strip()
+            # The serializer will handle everything except many images
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            report = serializer.save(user=request.user)
 
-            if not fort_name:
-                return Response({'error': 'Fort name is required.'}, status=status.HTTP_400_BAD_REQUEST)
-            if not location:
-                return Response({'error': 'Location is required.'}, status=status.HTTP_400_BAD_REQUEST)
-            if not damage_type:
-                return Response({'error': 'Damage type is required.'}, status=status.HTTP_400_BAD_REQUEST)
-            if not severity:
-                return Response({'error': 'Severity level is required.'}, status=status.HTTP_400_BAD_REQUEST)
-            if not request.FILES:
-                return Response({'error': 'At least one image is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Save the report
-            report = FortDamageReport.objects.create(
-                fort_name=fort_name,
-                location=location,
-                damage_type=damage_type,
-                severity=severity,
-                description=request.data.get('description', ''),
-                reporter_name=request.data.get('reporter_name', ''),
-                reporter_contact=request.data.get('reporter_contact', ''),
-            )
-
-            # Save each uploaded image
-            for key, file in request.FILES.items():
-                ReportImage.objects.create(report=report, image=file)
-
-            logger.info(f"New damage report submitted: {fort_name} - {damage_type} ({severity})")
-
+            # Look for multiple images in the request
+            # Could be under 'images' array or just request.FILES
+            images = request.FILES.getlist('images')
+            if not images:
+                # Fallback to older style where images act like single key-value
+                images = [file for key, file in request.FILES.items() if key != 'repair_image']
+            
+            for image in images:
+                ReportImage.objects.create(report=report, image=image)
+            
             return Response({
                 'message': 'Report submitted successfully',
-                'report_id': report.id,
+                'report': self.get_serializer(report).data
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             logger.error(f"Error saving user report: {str(e)}", exc_info=True)
-            return Response({'error': 'Something went wrong. Please try again.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def get(self, request, *args, **kwargs):
-        return Response({'error': 'Method not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+class AdminDamageReportViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminUser]
+    serializer_class = FortDamageReportSerializer
+    queryset = FortDamageReport.objects.all().order_by('-submitted_at')
+
+    def partial_update(self, request, *args, **kwargs):
+        report = self.get_object()
+        
+        # Admin can update status, admin_notes, and repair_image
+        if 'status' in request.data:
+            report.status = request.data['status']
+        if 'admin_notes' in request.data:
+            report.admin_notes = request.data['admin_notes']
+        if 'repair_image' in request.FILES:
+            report.repair_image = request.FILES['repair_image']
+            
+        report.reviewed_by = request.user.username
+        report.reviewed_at = datetime.now()
+        report.save()
+
+        return Response(self.get_serializer(report).data)

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from django.contrib.auth.models import User
 import os
 
 class Fort(models.Model):
@@ -147,6 +148,9 @@ class FortDamageReport(models.Model):
     severity = models.CharField(max_length=50, choices=SEVERITY_LEVELS)
     description = models.TextField(blank=True, null=True)
 
+    # User who submitted the report (null if anonymous/old)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+
     # Reporter info (optional — public user)
     reporter_name = models.CharField(max_length=100, blank=True, null=True)
     reporter_contact = models.CharField(max_length=100, blank=True, null=True)
@@ -154,6 +158,7 @@ class FortDamageReport(models.Model):
     # Admin review fields
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
     admin_notes = models.TextField(blank=True, null=True)
+    repair_image = models.ImageField(upload_to='repair_images/', null=True, blank=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
     reviewed_by = models.CharField(max_length=100, null=True, blank=True)
 

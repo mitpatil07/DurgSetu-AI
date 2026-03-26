@@ -99,8 +99,12 @@ const UserReport = () => {
             Object.entries(formData).forEach(([key, value]) => payload.append(key, value));
             images.forEach((img, i) => payload.append(`image_${i}`, img.file));
 
-            const response = await fetch('http://127.0.0.1:8000/api/user-report/', {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch('http://127.0.0.1:8000/api/user-reports/', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Token ${token}`
+                },
                 body: payload,
             });
 
@@ -136,10 +140,10 @@ const UserReport = () => {
                             Submit Another Report
                         </button>
                         <button
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/user/dashboard')}
                             className="w-full border-2 border-slate-100 text-slate-600 hover:bg-slate-50 font-semibold py-4 px-6 rounded-xl transition-all duration-200"
                         >
-                            Return to Home
+                            View My Reports
                         </button>
                     </div>
                 </div>
@@ -423,8 +427,8 @@ const UserReport = () => {
                         </form>
 
                         <div className="mt-8 pt-6 border-t border-slate-100 text-center text-sm font-medium text-slate-500">
-                            <button onClick={() => navigate('/')} className="text-slate-400 hover:text-slate-600 transition-colors">
-                                Return to Landing Page
+                            <button onClick={() => navigate('/user/dashboard')} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                Return to Dashboard
                             </button>
                         </div>
                     </div>

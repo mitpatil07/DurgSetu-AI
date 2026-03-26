@@ -1,6 +1,5 @@
-# api/serializers.py
 from rest_framework import serializers
-from .models import Fort, FortImage, StructuralAnalysis
+from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage
 
 class FortImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -106,3 +105,23 @@ class FortSerializer(serializers.ModelSerializer):
                 'analysis_date': latest.analysis_date
             }
         return None
+
+class ReportImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReportImage
+        fields = ['id', 'image', 'uploaded_at']
+
+class FortDamageReportSerializer(serializers.ModelSerializer):
+    images = ReportImageSerializer(many=True, read_only=True)
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    user_name = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = FortDamageReport
+        fields = [
+            'id', 'user', 'user_email', 'user_name', 'fort_name', 'location', 
+            'damage_type', 'severity', 'description', 'reporter_name', 
+            'reporter_contact', 'status', 'admin_notes', 'repair_image', 
+            'reviewed_at', 'reviewed_by', 'submitted_at', 'images'
+        ]
+        read_only_fields = ['submitted_at']

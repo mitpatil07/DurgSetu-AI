@@ -60,13 +60,18 @@ const Stage1Dashboard = () => {
 
   const { stats, analytics } = data;
 
-  // Data for Risk Distribution Pie Chart (Updated Theme Colors)
+  const riskDist = stats?.risk_distribution || {};
+  const leaderboard = analytics?.leaderboard || [];
+  const criticalAlerts = analytics?.critical_alerts || [];
+  const trendData = analytics?.trend_data || [];
+
+  // Data for Risk Distribution Pie Chart
   const pieData = [
-    { name: 'Safe', value: stats.risk_distribution.SAFE, color: '#10b981' }, // emerald-500
-    { name: 'Low', value: stats.risk_distribution.LOW, color: '#64748b' },   // slate-500
-    { name: 'Medium', value: stats.risk_distribution.MEDIUM, color: '#f59e0b' }, // amber-500
-    { name: 'High', value: stats.risk_distribution.HIGH, color: '#f97316' }, // orange-500
-    { name: 'Critical', value: stats.risk_distribution.CRITICAL, color: '#ef4444' } // red-500
+    { name: 'Safe', value: riskDist.SAFE || 0, color: '#10b981' },
+    { name: 'Low', value: riskDist.LOW || 0, color: '#64748b' },
+    { name: 'Medium', value: riskDist.MEDIUM || 0, color: '#f59e0b' },
+    { name: 'High', value: riskDist.HIGH || 0, color: '#f97316' },
+    { name: 'Critical', value: riskDist.CRITICAL || 0, color: '#ef4444' },
   ].filter(d => d.value > 0);
 
   return (
@@ -147,7 +152,7 @@ const Stage1Dashboard = () => {
             </h2>
             <div className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={analytics.trend_data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <AreaChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
@@ -240,7 +245,7 @@ const Stage1Dashboard = () => {
               Fort Health Leaderboard
             </h2>
             <div className="space-y-4">
-              {analytics.leaderboard.map((fort, i) => (
+              {leaderboard.map((fort, i) => (
                 <div key={fort.id} className="flex items-center justify-between p-5 bg-slate-50 border border-transparent hover:border-orange-200 rounded-2xl transition-all hover:bg-white hover:shadow-md group cursor-default">
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 flex items-center justify-center rounded-xl font-extrabold text-base transition-colors ${i === 0 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : i === 1 ? 'bg-orange-300 text-white' : i === 2 ? 'bg-orange-200 text-orange-800' : 'bg-slate-200 text-slate-500 group-hover:bg-slate-300'}`}>
@@ -261,7 +266,7 @@ const Stage1Dashboard = () => {
                   </div>
                 </div>
               ))}
-              {analytics.leaderboard.length === 0 && (
+              {leaderboard.length === 0 && (
                 <div className="text-center py-12 flex flex-col items-center justify-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
                   <Shield className="w-8 h-8 text-slate-300 mb-3" />
                   <p className="text-slate-500 font-bold">No ranking data available yet.</p>
@@ -277,7 +282,7 @@ const Stage1Dashboard = () => {
               Recent Critical Alerts
             </h2>
             <div className="space-y-4 flex-1">
-              {analytics.critical_alerts.map((alert) => (
+              {criticalAlerts.map((alert) => (
                 <div key={alert.id} className="p-5 bg-red-50/50 border border-red-100 rounded-2xl hover:bg-red-50 transition-colors">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-bold text-red-900 text-lg">{alert.fort_name}</h3>
@@ -289,7 +294,7 @@ const Stage1Dashboard = () => {
                   <p className="text-xs font-bold text-red-900/40">{new Date(alert.date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</p>
                 </div>
               ))}
-              {analytics.critical_alerts.length === 0 && (
+              {criticalAlerts.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center py-12 bg-green-50/50 rounded-2xl border-2 border-dashed border-green-100 min-h-[300px]">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                     <Shield className="w-8 h-8 text-green-500" />
