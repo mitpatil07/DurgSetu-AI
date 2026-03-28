@@ -25,7 +25,7 @@ const HomeRoute = () => {
   }
 
   if (isAdmin) {
-    return <MainDashboard />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return <Navigate to="/user/dashboard" replace />;
@@ -34,7 +34,7 @@ const HomeRoute = () => {
 
 const UserOnlyRoute = ({ children }) => {
   const isAdmin = localStorage.getItem('is_staff') === 'true';
-  if (isAdmin) return <Navigate to="/admin/reports" replace />;
+  if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
   return children;
 };
 
@@ -77,6 +77,14 @@ const App = () => {
         />
 
         {/* Admin Routes */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <MainDashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin/reports"
           element={

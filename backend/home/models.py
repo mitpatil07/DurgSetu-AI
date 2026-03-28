@@ -3,6 +3,33 @@ from django.core.validators import FileExtensionValidator
 from django.contrib.auth.models import User
 import os
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
+
+    def __str__(self):
+        return f"User: {self.user.username}"
+
+class AdminUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_user')
+    department = models.CharField(max_length=100, blank=True, null=True)
+    designation = models.CharField(max_length=100, blank=True, null=True)
+    clearance_level = models.IntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Admin User'
+        verbose_name_plural = 'Admin Users'
+
+    def __str__(self):
+        return f"Admin: {self.user.username}"
+
 class Fort(models.Model):
     name = models.CharField(max_length=200)
     location = models.CharField(max_length=300)

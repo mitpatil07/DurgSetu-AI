@@ -1,5 +1,24 @@
 from rest_framework import serializers
-from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage
+from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage, UserProfile, AdminUser
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'username', 'email', 'phone_number', 'address', 'created_at']
+        read_only_fields = ['created_at']
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = AdminUser
+        fields = ['id', 'username', 'email', 'department', 'designation', 'clearance_level', 'created_at']
+        read_only_fields = ['created_at']
+
 
 class FortImageSerializer(serializers.ModelSerializer):
     class Meta:

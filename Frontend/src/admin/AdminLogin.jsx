@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, AlertCircle, Loader, UserPlus, User } from 'lucide-react';
 
 const AdminLogin = () => {
-    const [mode, setMode] = useState('login'); 
+    const [mode, setMode] = useState('login');
     const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -30,8 +30,8 @@ const AdminLogin = () => {
                 : 'http://127.0.0.1:8000/api/register/';
 
             const body = mode === 'login'
-                ? { username: formData.username, password: formData.password }
-                : { username: formData.username, email: formData.email, password: formData.password };
+                ? { username: formData.username, password: formData.password, role: 'admin' }
+                : { username: formData.username, email: formData.email, password: formData.password, role: 'admin' };
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -47,11 +47,12 @@ const AdminLogin = () => {
                     return;
                 }
                 localStorage.setItem('auth_token', data.token);
+                localStorage.setItem('token', data.token);
                 localStorage.setItem('user_email', data.email);
                 localStorage.setItem('user_id', data.user_id);
                 localStorage.setItem('username', data.username || data.email);
                 localStorage.setItem('is_staff', data.is_staff);
-                navigate('/');
+                navigate('/admin/dashboard');
             } else {
                 const firstErr = typeof data === 'object' ? Object.values(data)[0] : null;
                 setError(Array.isArray(firstErr) ? firstErr[0] : (data.error || 'Something went wrong'));

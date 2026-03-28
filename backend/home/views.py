@@ -107,23 +107,44 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     
     def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
+        # We intercept the raw username strictly for prefixing logic
+        raw_username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email', '')
+        role = request.data.get('role', 'user') # Defaults to user
         
-        if not username or not password:
+        if not raw_username or not password:
             return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if User.objects.filter(username=username).exists():
-            return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
             
-        user = User.objects.create_user(username=username, email=email, password=password)
+        # Determine internal DB username mapped completely to role namespace
+        system_username = f"{role}_{raw_username}"
+        
+        if User.objects.filter(username=system_username).exists():
+            return Response({'error': f'Username already exists in {role} role.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = User.objects.create_user(username=system_username, email=email, password=password)
+        
+        # Profile Routing
+        if role == 'admin':
+            user.is_staff = True
+            user.save()
+            from .models import AdminUser
+            AdminUser.objects.create(user=user)
+        else:
+            user.is_staff = False
+            user.save()
+            from .models import UserProfile
+            UserProfile.objects.create(user=user)
+
         token, created = Token.objects.get_or_create(user=user)
         return Response({
             'token': token.key,
             'user_id': user.pk,
-            'username': user.username,
-            'email': user.email
+            'username': raw_username, # Return the visual name to the frontend seamlessly
+            'system_username': user.username,
+            'email': user.email,
+            'role': role,
+            'is_staff': user.is_staff
         }, status=status.HTTP_201_CREATED)
 
 
@@ -131,17 +152,42 @@ class LoginView(generics.GenericAPIView):
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
+        raw_username = request.data.get('username')
         password = request.data.get('password')
-        user = authenticate(username=username, password=password)
+        role = request.data.get('role', 'user') # Extract the intended portal login
+        
+        # Automatically append the role prefix to query the unique DB record perfectly
+        system_username = f"{role}_{raw_username}"
+        user = authenticate(username=system_username, password=password)
+        
+        # Fallback check incase they registered prior to prefix system without a prefix
+        if not user:
+            user = authenticate(username=raw_username, password=password)
+
         if user:
             token, created = Token.objects.get_or_create(user=user)
+            
+            # Fetch profile details
+            profile_data = {}
+            user_role = 'user'
+            if user.is_staff:
+                user_role = 'admin'
+                if hasattr(user, 'admin_user'):
+                    from .serializers import AdminUserSerializer
+                    profile_data = AdminUserSerializer(user.admin_user).data
+            else:
+                if hasattr(user, 'user_profile'):
+                    from .serializers import UserProfileSerializer
+                    profile_data = UserProfileSerializer(user.user_profile).data
+
             return Response({
                 'token': token.key,
                 'user_id': user.pk,
-                'username': user.username,
+                'username': raw_username, # Strip prefix visibly
                 'email': user.email,
-                'is_staff': user.is_staff
+                'is_staff': user.is_staff,
+                'role': user_role,
+                'profile': profile_data
             })
         else:
             return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)
