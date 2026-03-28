@@ -9,7 +9,6 @@ from django.contrib.auth import authenticate
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 from django.db.models import Count, Avg
-import google.generativeai as genai
 from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage
 from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer, FortDamageReportSerializer, ReportImageSerializer
 from .structural_detector import StructuralChangeDetector
@@ -21,14 +20,21 @@ import threading
 logger = logging.getLogger(__name__) 
 
 def send_ai_report_email(analysis, user_notes, user_email):
+    print(f"EMAIL DEBUG: Starting send_ai_report_email for email={user_email}")
     if not user_email:
+        print("EMAIL DEBUG: No user_email provided, aborting.")
         return
         
     try:
-        api_key = getattr(settings, 'GEMINI_API_KEY', 'dummy_key')
-        if api_key and api_key != 'dummy_key':
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-2.5-flash')
+        api_key = getattr(settings, 'NVIDIA_API_KEY', None)
+        print(f"EMAIL DEBUG: NVIDIA API Key present: {bool(api_key)}")
+        if api_key:
+            import requests
+            
+            header = {
+                "Authorization": f"Bearer {api_key}",
+                "Accept": "application/json",
+            }
             
             fort_name = analysis.fort.name
             risk = analysis.risk_level
@@ -50,11 +56,21 @@ def send_ai_report_email(analysis, user_notes, user_email):
             Summarize the findings, state the risk level clearly, and suggest what prompt action they might need to take based on the risk level. Keep it under 150 words. Do not use markdown format in the email body.
             """
             
-            response = model.generate_content(prompt)
-            ai_email_body = response.text
+            payload = {
+                "model": "meta/llama-3.1-8b-instruct",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.2,
+                "max_tokens": 500,
+            }
+            
+            url = "https://integrate.api.nvidia.com/v1/chat/completions"
+            response = requests.post(url, headers=header, json=payload)
+            response.raise_for_status()
+            result = response.json()
+            ai_email_body = result['choices'][0]['message']['content']
         else:
             fort_name = analysis.fort.name
-            ai_email_body = f"DurgSetu AI Automated Report\nFort: {fort_name}\nRisk Level: {analysis.risk_level}\nChanges Detected: {analysis.changes_detected}\nNotes: {user_notes}\n\n(Note: Gemini AI is not configured. Add GEMINI_API_KEY to Django settings to enable AI generated reports.)"
+            ai_email_body = f"DurgSetu AI Automated Report\nFort: {fort_name}\nRisk Level: {analysis.risk_level}\nChanges Detected: {analysis.changes_detected}\nNotes: {user_notes}\n\n(Note: NVIDIA AI is not configured. Add NVIDIA_API_KEY to Django settings to enable AI generated reports.)"
         
         email_msg = EmailMessage(
             subject=f'[DurgSetu AI Agent] Structural Report - {analysis.fort.name}',
@@ -68,13 +84,18 @@ def send_ai_report_email(analysis, user_notes, user_email):
             pdf_bytes = generate_pdf_report(analysis, ai_email_body)
             safe_fort_name = analysis.fort.name.replace(" ", "_")
             email_msg.attach(f'Structural_Analysis_{safe_fort_name}.pdf', pdf_bytes, 'application/pdf')
+            print(f"EMAIL DEBUG: PDF gracefully attached for {safe_fort_name}")
         except Exception as e:
+            print(f"EMAIL DEBUG: Failed to generate PDF attachment: {e}")
             logger.error(f"Failed to generate PDF attachment: {e}")
             
+        print(f"EMAIL DEBUG: Sending email via SMTP...")
         email_msg.send(fail_silently=False)
+        print(f"EMAIL DEBUG: AI Email successfully dispatched to {user_email}")
         logger.info(f"AI Email sent with PDF to {user_email} for fort {analysis.fort.name}")
             
     except Exception as e:
+        print(f"EMAIL DEBUG: Failed to generate or send AI email: {e}")
         logger.error(f"Failed to generate or send AI email: {e}")
 
 logger = logging.getLogger(__name__)
