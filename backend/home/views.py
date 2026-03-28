@@ -126,6 +126,13 @@ class RegisterView(generics.CreateAPIView):
         
         # Profile Routing
         if role == 'admin':
+            from django.conf import settings
+            admin_secret = request.data.get('admin_secret')
+            if admin_secret != getattr(settings, 'ADMIN_REGISTRATION_SECRET', 'durgsetu_admin_2026'):
+                # Delete user since auth failed the security protocol
+                user.delete()
+                return Response({'error': 'Unauthorized! Invalid Admin Registration Secret.'}, status=status.HTTP_403_FORBIDDEN)
+                
             user.is_staff = True
             user.save()
             from .models import AdminUser
@@ -242,7 +249,7 @@ class FortViewSet(viewsets.ModelViewSet):
             'forts_at_risk': risk_counts['HIGH'] + risk_counts['CRITICAL']
         })
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
     def analytics(self, request):
         """
         Get detailed analytics for the dashboard:
@@ -344,7 +351,7 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             
         return queryset
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def verify(self, request, pk=None):
         """
         Verify an analysis result.

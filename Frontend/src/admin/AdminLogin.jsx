@@ -4,7 +4,7 @@ import { Shield, Mail, Lock, AlertCircle, Loader, UserPlus, User } from 'lucide-
 
 const AdminLogin = () => {
     const [mode, setMode] = useState('login');
-    const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
+    const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '', adminSecret: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -31,7 +31,7 @@ const AdminLogin = () => {
 
             const body = mode === 'login'
                 ? { username: formData.username, password: formData.password, role: 'admin' }
-                : { username: formData.username, email: formData.email, password: formData.password, role: 'admin' };
+                : { username: formData.username, email: formData.email, password: formData.password, admin_secret: formData.adminSecret, role: 'admin' };
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -193,6 +193,21 @@ const AdminLogin = () => {
                                             className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-slate-400"
                                             placeholder="••••••••" />
                                     </div>
+                                </div>
+                            )}
+
+                            {mode === 'register' && (
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Admin Security Key</label>
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-orange-500 transition-colors">
+                                            <Lock className="h-5 w-5" />
+                                        </div>
+                                        <input type="password" name="adminSecret" value={formData.adminSecret} onChange={handleChange} required
+                                            className="pl-12 w-full p-4 bg-orange-50 border-2 border-orange-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-orange-400"
+                                            placeholder="Company Admin Secret" />
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-2 font-medium">To prevent abuse, creating an admin account requires a system-issued security key.</p>
                                 </div>
                             )}
 
