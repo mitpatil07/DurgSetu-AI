@@ -16,6 +16,7 @@ from .report_generator import generate_pdf_report
 from datetime import datetime
 import logging
 import threading
+import requests
 
 logger = logging.getLogger(__name__) 
 
@@ -29,7 +30,6 @@ def send_ai_report_email(analysis, user_notes, user_email):
         api_key = getattr(settings, 'NVIDIA_API_KEY', None)
         print(f"EMAIL DEBUG: NVIDIA API Key present: {bool(api_key)}")
         if api_key:
-            import requests
             
             header = {
                 "Authorization": f"Bearer {api_key}",

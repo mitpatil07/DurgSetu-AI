@@ -36,6 +36,7 @@ const Login = () => {
                 }
 
                 localStorage.setItem('auth_token', data.token);
+                localStorage.setItem('token', data.token);
                 localStorage.setItem('user_email', data.email);
                 localStorage.setItem('user_id', data.user_id);
                 localStorage.setItem('username', data.username || data.email);
