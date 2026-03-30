@@ -18,11 +18,6 @@ const AdminLogin = () => {
         e.preventDefault();
         setError('');
 
-        if (mode === 'register' && formData.password !== formData.confirmPassword) {
-            setError("Passwords don't match");
-            return;
-        }
-
         setLoading(true);
         try {
             const url = mode === 'login'
@@ -114,15 +109,6 @@ const AdminLogin = () => {
                             >
                                 Admin Login
                             </button>
-                            <button
-                                onClick={() => { setMode('register'); setError(''); }}
-                                className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${mode === 'register'
-                                    ? 'bg-white shadow text-slate-900'
-                                    : 'text-slate-500 hover:text-slate-700'
-                                    }`}
-                            >
-                                Register Admin
-                            </button>
                         </div>
 
                         <div className="mb-8">
@@ -181,36 +167,6 @@ const AdminLogin = () => {
                                         placeholder="••••••••" />
                                 </div>
                             </div>
-
-                            {mode === 'register' && (
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Confirm Password</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-orange-500 transition-colors">
-                                            <Lock className="h-5 w-5" />
-                                        </div>
-                                        <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required
-                                            className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-slate-400"
-                                            placeholder="••••••••" />
-                                    </div>
-                                </div>
-                            )}
-
-                            {mode === 'register' && (
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Admin Security Key</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-orange-500 transition-colors">
-                                            <Lock className="h-5 w-5" />
-                                        </div>
-                                        <input type="password" name="adminSecret" value={formData.adminSecret} onChange={handleChange} required
-                                            className="pl-12 w-full p-4 bg-orange-50 border-2 border-orange-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-orange-400"
-                                            placeholder="Company Admin Secret" />
-                                    </div>
-                                    <p className="text-xs text-slate-400 mt-2 font-medium">To prevent abuse, creating an admin account requires a system-issued security key.</p>
-                                </div>
-                            )}
-
                             <button type="submit" disabled={loading}
                                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl shadow-[0_8px_20px_-6px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(249,115,22,0.6)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:hover:translate-y-0 mt-4"
                             >
