@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 def send_ai_report_email(analysis, user_notes, user_email):
     print(f"EMAIL DEBUG: Starting send_ai_report_email for email={user_email}")
-    if not user_email:
-        print("EMAIL DEBUG: No user_email provided, aborting.")
+    if not user_email or not user_email.strip():
+        print("EMAIL DEBUG: No user_email provided or email is empty, aborting.")
         return
         
     try:
@@ -501,9 +501,10 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             logger.info(f"Analysis complete: {results['risk_assessment']['level']} risk detected")
             
             # --- Auto-send Email upon scan generation ---
+            user_email_for_scan = request.user.email if request.user.is_authenticated and request.user.email else None
             threading.Thread(
                 target=send_ai_report_email, 
-                args=(analysis, "Automated scan completed on new image upload.", request.user.email if hasattr(request.user, 'email') else None)
+                args=(analysis, "Automated scan completed on new image upload.", user_email_for_scan)
             ).start()
             
             # Return full analysis
