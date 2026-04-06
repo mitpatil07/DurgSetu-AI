@@ -22,7 +22,7 @@ const AdminProfile = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:8000/api/structural-analyses/?mine=true', {
+            const response = await fetch('http://127.0.0.1:8000/api/structural-analyses/?mine=true', {
                 headers: {
                     'Authorization': `Token ${token}`,
                     'Content-Type': 'application/json'

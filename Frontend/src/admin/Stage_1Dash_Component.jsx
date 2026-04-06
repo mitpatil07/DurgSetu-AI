@@ -6,8 +6,9 @@ import {
 } from 'recharts';
 import {
   TrendingUp, AlertTriangle, Shield, Activity,
-  ArrowUpRight, ArrowDownRight, LayoutDashboard, User
+  ArrowUpRight, ArrowDownRight, LayoutDashboard, User, FileText
 } from 'lucide-react';
+import UserReportAnalysis from './UserReportAnalysis';
 
 const Stage1Dashboard = () => {
   const navigate = useNavigate();
@@ -28,8 +29,8 @@ const Stage1Dashboard = () => {
       };
 
       const [statsRes, analyticsRes] = await Promise.all([
-        fetch('http://localhost:8000/api/forts/statistics/?mine=true', { headers }),
-        fetch('http://localhost:8000/api/forts/analytics/?mine=true', { headers })
+        fetch('http://127.0.0.1:8000/api/forts/statistics/?mine=true', { headers }),
+        fetch('http://127.0.0.1:8000/api/forts/analytics/?mine=true', { headers })
       ]);
 
       if (!statsRes.ok || !analyticsRes.ok) throw new Error('Failed to fetch data');
@@ -306,6 +307,15 @@ const Stage1Dashboard = () => {
             </div>
           </div>
 
+        </div>
+
+        {/* User Report Analysis Integration */}
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-6">
+            <FileText className="w-6 h-6 text-indigo-500" />
+            <h2 className="text-xl font-extrabold text-slate-800">User Damange Reports & Insights</h2>
+          </div>
+          <UserReportAnalysis embedded={true} />
         </div>
       </main>
     </div>

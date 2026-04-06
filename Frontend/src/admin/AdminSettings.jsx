@@ -27,7 +27,7 @@ const AdminSettings = () => {
     const fetchProfile = async () => {
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://localhost:8000/api/profile/', {
+            const res = await fetch('http://127.0.0.1:8000/api/profile/', {
                 headers: { 'Authorization': `Token ${token}` }
             });
             if (res.ok) {
@@ -46,7 +46,7 @@ const AdminSettings = () => {
         setSaving(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://localhost:8000/api/profile/', {
+            const res = await fetch('http://127.0.0.1:8000/api/profile/', {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Token ${token}`,
@@ -76,7 +76,7 @@ const AdminSettings = () => {
         setSaving(true);
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://localhost:8000/api/change-password/', {
+            const res = await fetch('http://127.0.0.1:8000/api/change-password/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Token ${token}`,

@@ -1,7 +1,10 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.contrib.auth.models import User
+from django.utils import timezone
 import os
+import uuid
+from datetime import timedelta
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
@@ -221,3 +224,16 @@ class ReportImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.report.fort_name} report #{self.report.id}"
+
+
+class PasswordResetToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='password_reset_token')
+    otp = models.CharField(max_length=6, blank=True, null=True)
+    token = models.UUIDField(null=True, blank=True, unique=True, db_index=True)  # Set only after OTP is verified
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=10)
+
+    def __str__(self):
+        return f"PasswordResetToken for {self.user.username}"

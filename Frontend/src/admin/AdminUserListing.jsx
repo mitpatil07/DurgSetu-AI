@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Users, Shield, User, Search, Filter,
     MoreVertical, Mail, Phone, Calendar,
     CheckCircle, XCircle, ChevronRight, Home,
     FileText, BarChart2, Bell, Settings, LogOut, Menu
 } from 'lucide-react';
+import AdminNavbar from './AdminNavbar';
 
 /* ─── Design Tokens ───────────────────────────────── */
 const FONT = "'DM Sans', 'Inter', system-ui, sans-serif";
@@ -74,6 +75,7 @@ const UserCard = ({ user }) => (
 
 export default function AdminUserListing() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -83,27 +85,27 @@ export default function AdminUserListing() {
 
     const adminName = localStorage.getItem('username') || 'Admin';
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            setLoading(true);
-            try {
-                const token = localStorage.getItem('auth_token');
-                // We'll use a generic endpoint or separate ones
-                const response = await fetch('http://localhost:8000/api/profile/all/', {
-                    headers: { 'Authorization': `Token ${token}` }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setUsers(data);
-                }
-            } catch (err) {
-                console.error('Failed to fetch users:', err);
-            } finally {
-                setLoading(false);
+    const fetchUsers = React.useCallback(async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch('http://127.0.0.1:8000/api/profile/all/', {
+                headers: { 'Authorization': `Token ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setUsers(data);
             }
-        };
-        fetchUsers();
+        } catch (err) {
+            console.error('Failed to fetch users:', err);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
 
     const filteredUsers = users.filter(u => {
         const matchesSearch = u.username.toLowerCase().includes(search.toLowerCase()) ||
@@ -115,79 +117,7 @@ export default function AdminUserListing() {
     return (
         <div style={{ fontFamily: FONT }} className="min-h-screen bg-[#F8F9FB]">
 
-            {/* Header / Navbar */}
-            <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                    <div className="flex items-center h-16 gap-3">
-                        {/* Brand */}
-                        <div className="flex items-center gap-2.5 flex-shrink-0 mr-4 cursor-pointer" onClick={() => navigate('/admin')}>
-                            <div className="relative w-9 h-9">
-                                <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl shadow-md shadow-orange-200" />
-                                <Shield className="absolute inset-0 m-auto w-[18px] h-[18px] text-white" />
-                            </div>
-                            <div className="hidden sm:block leading-tight">
-                                <p className="text-[13px] font-extrabold text-slate-900 tracking-tight">DurgSetu</p>
-                                <p className="text-[10px] text-slate-400 font-semibold tracking-wide">Admin Portal</p>
-                            </div>
-                        </div>
-
-                        <span className="hidden md:block h-6 w-px bg-slate-200 flex-shrink-0" />
-
-                        {/* Desktop Nav */}
-                        <nav className="hidden md:flex items-center gap-0.5 flex-1 ml-4">
-                            {NAV_LINKS.map(link => (
-                                <button
-                                    key={link.label}
-                                    onClick={() => navigate(link.path)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${link.path === '/users' ? 'bg-orange-50 text-orange-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
-                                >
-                                    <link.icon className="w-4 h-4" />
-                                    {link.label}
-                                </button>
-                            ))}
-                        </nav>
-
-                        <div className="flex-1 md:hidden" />
-
-                        {/* Profile/Actions */}
-                        <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <button
-                                    onClick={() => setProfileOpen(!profileOpen)}
-                                    className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 cursor-pointer overflow-hidden border-2 border-transparent hover:border-orange-200 transition-all"
-                                >
-                                    <span className="font-bold">{adminName[0].toUpperCase()}</span>
-                                </button>
-                                {profileOpen && (
-                                    <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50">
-                                        <button onClick={() => navigate('/settings')} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-all">
-                                            <Settings className="w-4 h-4" /> Settings
-                                        </button>
-                                        <div className="h-px bg-slate-100 my-1 mx-2" />
-                                        <button onClick={() => { localStorage.clear(); navigate('/login'); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-all">
-                                            <LogOut className="w-4 h-4" /> Logout
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 text-slate-500">
-                                <Menu className="w-6 h-6" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Menu */}
-                {mobileOpen && (
-                    <div className="md:hidden bg-white border-t border-slate-100 p-4 space-y-2">
-                        {NAV_LINKS.map(link => (
-                            <button key={link.label} onClick={() => navigate(link.path)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold ${link.path === '/users' ? 'bg-orange-50 text-orange-600' : 'text-slate-500'}`}>
-                                <link.icon className="w-5 h-5" /> {link.label}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </header>
+            <AdminNavbar onRefresh={fetchUsers} />
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
