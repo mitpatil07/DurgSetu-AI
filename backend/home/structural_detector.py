@@ -1,17 +1,19 @@
 
 import cv2
 import numpy as np
+import logging
 import torch
 import torch.nn as nn
 import torchvision.models as models
 from torchvision import transforms
-# from skimage.metrics import structural_similarity as ssim
-from skimage.metrics import structural_similarity as ssim # Re-enabled
+from skimage.metrics import structural_similarity as ssim
 from sklearn.cluster import DBSCAN
 from PIL import Image
 from django.core.files.base import ContentFile
 import io
 import torch.nn.functional as F
+
+logger = logging.getLogger(__name__)
 
 class StructuralChangeDetector:
     def __init__(self, config=None): 
@@ -23,9 +25,14 @@ class StructuralChangeDetector:
             'morphology_kernel_size': 5,
             'cluster_eps': 50,
             'cluster_min_samples': 1,
-            'risk_thresholds': {'low': 2, 'medium': 5, 'high': 10}
+            'risk_thresholds': {'low': 2, 'medium': 5, 'high': 10},
+            # HSV ranges for vegetation masking — configurable per-season or per-fort.
+            # Hue 15-95 covers dried grass (15-30) and bright green (30-95).
+            # Adjust these for the local flora and season when needed.
+            'grass_hsv_lower': [15, 30, 30],
+            'grass_hsv_upper': [95, 255, 255],
         }
-        self.k_factor = 0.0  # Dynamic sensitivity multiplier based on historical ML feedback
+        self.k_factor = 0.0  # Adaptive threshold offset updated via update_thresholds_from_history()
         self.setup_cnn_model()
         self.setup_processing_tools()
         
@@ -53,10 +60,9 @@ class StructuralChangeDetector:
         ])
     
     def setup_processing_tools(self):
-        # Color filters for masking vegetation
-        # Widened to include yellow/dried grass (Hue 15-30) and bright green
-        self.grass_lower = np.array([15, 30, 30])
-        self.grass_upper = np.array([95, 255, 255])
+        # Vegetation HSV filter ranges (configurable via config dict)
+        self.grass_lower = np.array(self.config['grass_hsv_lower'])
+        self.grass_upper = np.array(self.config['grass_hsv_upper'])
         
         # Sky filters (Blue/White/Grey)
         self.sky_lower_blue = np.array([90, 50, 50])
@@ -110,7 +116,7 @@ class StructuralChangeDetector:
             kp2, des2 = detector.detectAndCompute(curr_processed, None)
             
             if des1 is None or des2 is None:
-                print("No descriptors found.")
+                logger.debug("No descriptors found during image alignment.")
                 return past_img, current_img
                 
             bf = cv2.BFMatcher(cv2.NORM_HAMMING)
@@ -123,7 +129,7 @@ class StructuralChangeDetector:
                     good_matches.append(m)
             
             if len(good_matches) < 10:
-                print("Not enough good matches to align.")
+                logger.debug("Not enough good matches to align images (%d found).", len(good_matches))
                 return past_img, current_img
                 
             src_pts = np.float32([kp1[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
@@ -141,7 +147,7 @@ class StructuralChangeDetector:
                 aligned_past = cv2.warpPerspective(past_img, M, (w, h))
                 return aligned_past, current_img
         except Exception as e:
-            print(f"Alignment failed: {e}")
+            logger.warning("Image alignment failed: %s", e)
             pass
             
         return past_img, current_img
@@ -269,8 +275,12 @@ class StructuralChangeDetector:
         """
         # Base k=0.0 is hyper-sensitive. A 50% FP rate translates to k=1.5
         # Require feature differences to be 1.5 standard deviations above mean to detect anything.
-        self.k_factor = min(2.5, false_positive_rate * 3.0) 
-        print(f"ML Auto-Tuner: Adjusted model sensitivity constraint (k_factor) to {self.k_factor:.2f} based on a {false_positive_rate*100:.1f}% historical false positive rate.")
+        self.k_factor = min(2.5, false_positive_rate * 3.0)
+        logger.info(
+            "ML Auto-Tuner: Adjusted k_factor to %.2f based on %.1f%% historical false positive rate.",
+            self.k_factor,
+            false_positive_rate * 100,
+        )
 
     def detect_structural_changes(self, past_img, current_img, temp=None, humidity=None, wind_speed=None):
         # 1. Ensure same size (resize past to current)
@@ -354,10 +364,19 @@ class StructuralChangeDetector:
         
         # 8. Risk Assessment & Climate Stress Calculation
         risk_assessment = self.assess_risk(clustered_detections, global_diff_score, temp, humidity, wind_speed)
+
+        # Overall detection confidence: average of per-detection confidences (0–100 %)
+        if clustered_detections:
+            overall_confidence = float(
+                sum(d['confidence'] for d in clustered_detections) / len(clustered_detections)
+            )
+        else:
+            overall_confidence = 0.0
         
         results = {
             'cnn_distance': float(global_diff_score),
             'ssim_score': float(ssim_val),
+            'overall_confidence': round(overall_confidence * 100, 1),  # percentage
             'detections': clustered_detections,
             'risk_assessment': risk_assessment,
             'total_changes': len(clustered_detections),

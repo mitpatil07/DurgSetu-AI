@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, generics, permissions
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle, ScopedRateThrottle
 from django.db.models import Prefetch
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -13,25 +14,36 @@ from django.db.models import Count, Avg
 from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage, PasswordResetToken
 from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer, FortDamageReportSerializer, ReportImageSerializer
 from .structural_detector import StructuralChangeDetector
+from .detector_singleton import detector_instance
 from .report_generator import generate_pdf_report
 from datetime import datetime
+import hmac
 import logging
 import threading
 import requests
 import uuid
 import random
 
-logger = logging.getLogger(__name__) 
+logger = logging.getLogger(__name__)
+
+
+class LoginRateThrottle(ScopedRateThrottle):
+    scope = 'login'
+
+
+class ForgotPasswordRateThrottle(ScopedRateThrottle):
+    scope = 'forgot_password'
+
 
 def send_ai_report_email(analysis, user_notes, user_email):
-    print(f"EMAIL DEBUG: Starting send_ai_report_email for email={user_email}")
+    logger.debug("Starting send_ai_report_email for email=%s", user_email)
     if not user_email or not user_email.strip():
-        print("EMAIL DEBUG: No user_email provided or email is empty, aborting.")
+        logger.debug("No user_email provided or email is empty, aborting.")
         return
         
     try:
         api_key = getattr(settings, 'NVIDIA_API_KEY', None)
-        print(f"EMAIL DEBUG: NVIDIA API Key present: {bool(api_key)}")
+        logger.debug("NVIDIA API Key present: %s", bool(api_key))
         if api_key:
             
             header = {
@@ -87,21 +99,16 @@ def send_ai_report_email(analysis, user_notes, user_email):
             pdf_bytes = generate_pdf_report(analysis, ai_email_body)
             safe_fort_name = analysis.fort.name.replace(" ", "_")
             email_msg.attach(f'Structural_Analysis_{safe_fort_name}.pdf', pdf_bytes, 'application/pdf')
-            print(f"EMAIL DEBUG: PDF gracefully attached for {safe_fort_name}")
+            logger.debug("PDF gracefully attached for %s", safe_fort_name)
         except Exception as e:
-            print(f"EMAIL DEBUG: Failed to generate PDF attachment: {e}")
-            logger.error(f"Failed to generate PDF attachment: {e}")
+            logger.error("Failed to generate PDF attachment: %s", e)
             
-        print(f"EMAIL DEBUG: Sending email via SMTP...")
+        logger.debug("Sending email via SMTP...")
         email_msg.send(fail_silently=False)
-        print(f"EMAIL DEBUG: AI Email successfully dispatched to {user_email}")
-        logger.info(f"AI Email sent with PDF to {user_email} for fort {analysis.fort.name}")
+        logger.info("AI Email sent with PDF to %s for fort %s", user_email, analysis.fort.name)
             
     except Exception as e:
-        print(f"EMAIL DEBUG: Failed to generate or send AI email: {e}")
-        logger.error(f"Failed to generate or send AI email: {e}")
-
-logger = logging.getLogger(__name__)
+        logger.error("Failed to generate or send AI email: %s", e, exc_info=True)
 
 # --- Authentication Views ---
 
@@ -130,8 +137,9 @@ class RegisterView(generics.CreateAPIView):
         # Profile Routing
         if role == 'admin':
             from django.conf import settings
-            admin_secret = request.data.get('admin_secret')
-            if admin_secret != getattr(settings, 'ADMIN_REGISTRATION_SECRET', 'durgsetu_admin_2026'):
+            admin_secret = request.data.get('admin_secret', '')
+            expected_secret = getattr(settings, 'ADMIN_REGISTRATION_SECRET', 'durgsetu_admin_2026')
+            if not hmac.compare_digest(admin_secret, expected_secret):
                 # Delete user since auth failed the security protocol
                 user.delete()
                 return Response({'error': 'Unauthorized! Invalid Admin Registration Secret.'}, status=status.HTTP_403_FORBIDDEN)
@@ -160,6 +168,7 @@ class RegisterView(generics.CreateAPIView):
 
 class LoginView(generics.GenericAPIView):
     permission_classes = (AllowAny,)
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request, *args, **kwargs):
         raw_username = request.data.get('username')
@@ -205,6 +214,7 @@ class LoginView(generics.GenericAPIView):
 
 class ForgotPasswordView(generics.GenericAPIView):
     permission_classes = (AllowAny,)
+    throttle_classes = [ForgotPasswordRateThrottle]
 
     def post(self, request, *args, **kwargs):
         email = request.data.get('email', '').strip()
@@ -222,9 +232,11 @@ class ForgotPasswordView(generics.GenericAPIView):
         # Generate 6-digit OTP
         otp = str(random.randint(100000, 999999))
 
-        # Invalidate any previous token
-        PasswordResetToken.objects.filter(user=user).delete()
-        PasswordResetToken.objects.create(user=user, otp=otp, token=None)
+        # Atomically create or replace the password reset token
+        PasswordResetToken.objects.update_or_create(
+            user=user,
+            defaults={'otp': otp, 'token': None},
+        )
 
         display_name = user.username.split('_', 1)[-1] if '_' in user.username else user.username
 
@@ -267,8 +279,13 @@ class VerifyOTPView(generics.GenericAPIView):
         user = users.first()
 
         try:
-            reset_entry = PasswordResetToken.objects.get(user=user, otp=otp)
+            reset_entry = PasswordResetToken.objects.get(user=user)
         except PasswordResetToken.DoesNotExist:
+            return Response({'error': 'Invalid OTP. Please check and try again.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Use hmac.compare_digest to prevent timing-based enumeration attacks
+        stored_otp = reset_entry.otp or ''
+        if not hmac.compare_digest(stored_otp, otp):
             return Response({'error': 'Invalid OTP. Please check and try again.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if reset_entry.is_expired():
@@ -316,7 +333,7 @@ class ResetPasswordView(generics.GenericAPIView):
 
 class FortViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = Fort.objects.all()
+    queryset = Fort.objects.prefetch_related('images', 'analyses').all()
     serializer_class = FortSerializer
     
     @action(detail=False, methods=['get'])
@@ -485,11 +502,14 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
         
         # --- AI Agent Email Notification Logic ---
         if is_verified:
-            # Run in a separate thread so it doesn't block the API response
-            threading.Thread(
-                target=send_ai_report_email, 
-                args=(analysis, user_notes, request.user.email)
-            ).start()
+            # Run in a daemon thread so it doesn't block the API response.
+            # Errors inside send_ai_report_email are already logged there.
+            t = threading.Thread(
+                target=send_ai_report_email,
+                args=(analysis, user_notes, request.user.email),
+                daemon=True,
+            )
+            t.start()
 
         return Response({
             'status': 'verified',
@@ -548,9 +568,10 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
                     'image_url': request.build_absolute_uri(current_image.image.url)
                 }, status=status.HTTP_201_CREATED)
             
-            # Perform analysis
+            # Perform analysis — use the pre-loaded singleton detector to avoid
+            # reloading ResNet50 weights on every request.
             logger.info(f"Starting structural analysis for fort {fort.name}")
-            detector = StructuralChangeDetector()
+            detector = detector_instance or StructuralChangeDetector()
             
             # --- Auto-Training / ML Feedback Loop ---
             if request.user.is_authenticated:
@@ -617,8 +638,9 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             # --- Auto-send Email upon scan generation ---
             user_email_for_scan = request.user.email if request.user.is_authenticated and request.user.email else None
             threading.Thread(
-                target=send_ai_report_email, 
-                args=(analysis, "Automated scan completed on new image upload.", user_email_for_scan)
+                target=send_ai_report_email,
+                args=(analysis, "Automated scan completed on new image upload.", user_email_for_scan),
+                daemon=True,
             ).start()
             
             # Return full analysis

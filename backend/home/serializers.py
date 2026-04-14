@@ -33,6 +33,7 @@ class StructuralAnalysisSerializer(serializers.ModelSerializer):
     annotated_image_url = serializers.SerializerMethodField()
     risk_assessment = serializers.SerializerMethodField()
     recommendations = serializers.SerializerMethodField()
+    overall_confidence = serializers.SerializerMethodField()
     
     class Meta:
         model = StructuralAnalysis
@@ -43,7 +44,7 @@ class StructuralAnalysisSerializer(serializers.ModelSerializer):
             'analysis_results', 'analysis_date',
             'is_verified', 'is_false_positive', 'user_notes', 'verified_at', 'verified_by',
             'previous_image_url', 'current_image_url', 'annotated_image_url',
-            'risk_assessment', 'recommendations'
+            'risk_assessment', 'recommendations', 'overall_confidence',
         ]
         read_only_fields = ['analysis_date']
     
@@ -77,6 +78,12 @@ class StructuralAnalysisSerializer(serializers.ModelSerializer):
             risk_assessment = obj.analysis_results.get('risk_assessment', {})
             return risk_assessment.get('recommendations', [])
         return []
+
+    def get_overall_confidence(self, obj):
+        # Return the pre-computed overall confidence percentage stored in analysis_results
+        if obj.analysis_results and isinstance(obj.analysis_results, dict):
+            return obj.analysis_results.get('overall_confidence', None)
+        return None
 
 
 class FortSerializer(serializers.ModelSerializer):

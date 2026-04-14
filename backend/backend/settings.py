@@ -7,12 +7,13 @@ load_dotenv(override=True)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-lc(3e&ii9@mvo3&9rer)ls2l1q@fru1dn2$tn*8%c$dxwx#fid'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-lc(3e&ii9@mvo3&9rer)ls2l1q@fru1dn2$tn*8%c$dxwx#fid')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+_allowed = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 
 
 
@@ -62,25 +63,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+_cors_env = os.getenv(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:3000,http://127.0.0.1:3000'
+)
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_env.split(',') if o.strip()]
 
 CORS_ALLOW_CREDENTIALS = True
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+import dj_database_url  # noqa: E402
 
+_default_db_url = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        env='DATABASE_URL',
+        default=_default_db_url,
+        conn_max_age=600,
+    )
 }
 
 
@@ -137,6 +138,16 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': os.getenv('THROTTLE_RATE_ANON', '100/day'),
+        'user': os.getenv('THROTTLE_RATE_USER', '1000/day'),
+        'login': os.getenv('THROTTLE_RATE_LOGIN', '10/min'),
+        'forgot_password': os.getenv('THROTTLE_RATE_FORGOT_PASSWORD', '5/min'),
+    },
 }
 
 # Email Configuration (SMTP)
@@ -149,3 +160,5 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER', 'noreply@durgsetu.ai')
 
 NVIDIA_API_KEY = os.getenv('NVIDIA_API_KEY')
+
+ADMIN_REGISTRATION_SECRET = os.getenv('ADMIN_REGISTRATION_SECRET', 'durgsetu_admin_2026')

@@ -178,8 +178,8 @@ class FortDamageReport(models.Model):
     severity = models.CharField(max_length=50, choices=SEVERITY_LEVELS)
     description = models.TextField(blank=True, null=True)
 
-    # User who submitted the report (null if anonymous/old)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    # User who submitted the report (null if anonymous/old or if user account is deleted)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Reporter info (optional — public user)
     reporter_name = models.CharField(max_length=100, blank=True, null=True)
@@ -230,7 +230,7 @@ class PasswordResetToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='password_reset_token')
     otp = models.CharField(max_length=6, blank=True, null=True)
     token = models.UUIDField(null=True, blank=True, unique=True, db_index=True)  # Set only after OTP is verified
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now=True)
 
     def is_expired(self):
         return timezone.now() > self.created_at + timedelta(minutes=10)
