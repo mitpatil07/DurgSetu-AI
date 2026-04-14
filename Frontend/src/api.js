@@ -4,8 +4,6 @@ const API_BASE =
         ? "http://127.0.0.1:8000/api"
         : "https://hardwood-bumper-lowest-remain.trycloudflare.com/api");
 
-console.log("API_BASE:", API_BASE);
-
 export { API_BASE };
 
 
@@ -25,7 +23,6 @@ export async function apiFetch(path, options = {}) {
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     const finalUrl = `${cleanBase}${cleanPath}`;
 
-    console.log("apiFetch calling URL:", finalUrl);
     const response = await fetch(finalUrl, {
         ...options,
         headers,
