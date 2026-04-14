@@ -15,7 +15,10 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 _allowed = os.getenv('ALLOWED_HOSTS', '*') # Default to '*' for tunnel support
 ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://hardwood-bumper-lowest-remain.trycloudflare.com",
+    "https://durgsetuai.vercel.app",
+]
 
 # Application definition
 
