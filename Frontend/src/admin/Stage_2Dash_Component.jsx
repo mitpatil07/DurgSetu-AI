@@ -6,6 +6,13 @@ import { errorToast } from '../services/swal';
 import { apiFetch } from '../api';
 import AdminNavbar from './AdminNavbar';
 
+const getImageUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `http://127.0.0.1:8000${cleanPath}`;
+};
+
 const Stage2Dashboard = ({ setActiveStage }) => {
   const navigate = useNavigate();
   const [fortsData, setFortsData] = useState([]);
@@ -453,7 +460,7 @@ const FortDetailModal = ({ fort, onClose, onRefresh }) => {
                 Analysis Visualization
               </h3>
               <div className="rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                <img src={fort.detailedAnalysis.annotated_image_url} alt="Analysis" className="w-full object-cover max-h-[500px]" />
+                <img src={getImageUrl(fort.detailedAnalysis.annotated_image_url)} alt="Analysis" className="w-full object-cover max-h-[500px]" />
               </div>
               <p className="text-slate-500 text-xs font-semibold mt-3">Bounding boxes designate structural variation. Computed: {new Date(fort.analysisDate).toLocaleString()}</p>
             </div>
@@ -462,13 +469,13 @@ const FortDetailModal = ({ fort, onClose, onRefresh }) => {
               <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
                 <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">Baseline Image</h4>
                 <div className="rounded-xl overflow-hidden border border-slate-200">
-                  <img src={fort.detailedAnalysis.previous_image_url} alt="Previous" className="w-full object-cover aspect-video" />
+                  <img src={getImageUrl(fort.detailedAnalysis.previous_image_url)} alt="Previous" className="w-full object-cover aspect-video" />
                 </div>
               </div>
               <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
                 <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">Current State</h4>
                 <div className="rounded-xl overflow-hidden border border-slate-200">
-                  <img src={fort.detailedAnalysis.current_image_url} alt="Current" className="w-full object-cover aspect-video" />
+                  <img src={getImageUrl(fort.detailedAnalysis.current_image_url)} alt="Current" className="w-full object-cover aspect-video" />
                 </div>
               </div>
             </div>

@@ -4,6 +4,7 @@ django-cors-headers>=4.0.0
 python-dotenv>=1.0.0
 dj-database-url>=2.1.0
 psycopg2-binary>=2.9.0
+gunicorn>=21.2.0
 
 Pillow>=10.0.0
 opencv-python>=4.8.0
@@ -25,6 +26,5 @@ imageio>=2.31.0
 networkx>=3.1
 tifffile>=2023.7.0
 
-# NVIDIA Llama 3.1 API Rest Client
 requests>=2.31.0
 reportlab>=4.0.0
