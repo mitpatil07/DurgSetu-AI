@@ -1,9 +1,8 @@
-import { API_BASE } from '../api';
+import { apiFetch } from '../api';
 
 export const login = async (username, password, role = 'user') => {
-    const response = await fetch(`${API_BASE}/login/`, {
+    const response = await apiFetch('/login/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, role }),
     });
     const data = await response.json();
@@ -15,9 +14,8 @@ export const register = async (username, password, email, role = 'user', adminSe
     const body = { username, password, email, role };
     if (role === 'admin') body.admin_secret = adminSecret;
 
-    const response = await fetch(`${API_BASE}/register/`, {
+    const response = await apiFetch('/register/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
     });
     const data = await response.json();
@@ -26,9 +24,8 @@ export const register = async (username, password, email, role = 'user', adminSe
 };
 
 export const forgotPassword = async (email) => {
-    const response = await fetch(`${API_BASE}/forgot-password/`, {
+    const response = await apiFetch('/forgot-password/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
     });
     const data = await response.json();
@@ -37,9 +34,8 @@ export const forgotPassword = async (email) => {
 };
 
 export const verifyOTP = async (email, otp) => {
-    const response = await fetch(`${API_BASE}/verify-otp/`, {
+    const response = await apiFetch('/verify-otp/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp }),
     });
     const data = await response.json();
@@ -48,9 +44,8 @@ export const verifyOTP = async (email, otp) => {
 };
 
 export const resetPassword = async (token, password) => {
-    const response = await fetch(`${API_BASE}/reset-password/`, {
+    const response = await apiFetch('/reset-password/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),
     });
     const data = await response.json();
