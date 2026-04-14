@@ -1,1 +1,66 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap');
+
+*,
+*::before,
+*::after {
+  font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+body {
+  font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── SweetAlert2 DurgSetu brand overrides ─────────────── */
+.ds-popup {
+  border-radius: 1.25rem !important;
+  font-family: 'DM Sans', 'Inter', system-ui, sans-serif !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  padding: 2rem !important;
+}
+
+.ds-title {
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+
+.ds-html {
+  color: #64748b !important;
+  font-size: 0.9rem !important;
+}
+
+.ds-confirm {
+  background: linear-gradient(to right, #f97316, #ea580c) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  padding: 0.65rem 1.5rem !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.35) !important;
+  transition: all 0.2s !important;
+}
+
+.ds-confirm:hover {
+  background: linear-gradient(to right, #ea580c, #c2410c) !important;
+  transform: translateY(-1px) !important;
+}
+
+.ds-cancel {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  padding: 0.65rem 1.5rem !important;
+  border-radius: 0.75rem !important;
+  transition: all 0.2s !important;
+}
+
+.ds-cancel:hover {
+  background: #e2e8f0 !important;
+}
+
+.swal2-toast .ds-popup {
+  padding: 0.9rem 1.25rem !important;
+  border-radius: 1rem !important;
+}

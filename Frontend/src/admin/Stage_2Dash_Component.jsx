@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, Activity, Shield, Zap, RefreshCw, Eye, Upload, Camera, CheckCircle, AlertCircle, X, Image, MapPin, BarChart3, AlertTriangle, User, Loader } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
+import { errorToast } from '../services/swal';
 
 const Stage2Dashboard = ({ setActiveStage }) => {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ const Stage2Dashboard = ({ setActiveStage }) => {
 
   const handleUpload = async () => {
     if (!selectedFort || !selectedFile) {
-      alert('Please select a fort and an image');
+      errorToast('Missing Fields', 'Please select a fort and upload an image before proceeding.');
       return;
     }
 
@@ -367,7 +368,7 @@ const FortCard = ({ fort, onViewDetails }) => (
 );
 
 const UploadModal = ({ fortsData, selectedFort, setSelectedFort, selectedFile, preview, uploading, uploadResult, onClose, onFileSelect, onUpload }) => (
-  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 overflow-y-auto">
+  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[60] overflow-y-auto">
     <div className="min-h-screen flex items-center justify-center p-4 py-8">
       <div className="bg-white rounded-[2rem] p-8 md:p-10 max-w-2xl w-full shadow-2xl border border-white/20">
         <div className="flex justify-between items-center mb-8">
@@ -424,7 +425,7 @@ const FortDetailModal = ({ fort, onClose, onRefresh }) => {
 
   if (!fort.detailedAnalysis) {
     return (
-      <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 overflow-y-auto">
+      <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[60] overflow-y-auto">
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="bg-white rounded-[2rem] p-10 max-w-2xl w-full shadow-2xl border border-white/20">
             <div className="flex justify-between items-center mb-6">
@@ -443,7 +444,7 @@ const FortDetailModal = ({ fort, onClose, onRefresh }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] overflow-y-auto">
       <div className="min-h-screen flex items-center justify-center p-4 py-8">
         <div className="bg-white rounded-3xl p-6 md:p-8 max-w-5xl w-full my-8 shadow-2xl border border-slate-100 max-h-[95vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/95 backdrop-blur-sm z-10 pb-4 border-b border-slate-100">

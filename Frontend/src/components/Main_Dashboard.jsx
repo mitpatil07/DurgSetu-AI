@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Activity, Shield, TrendingUp, Eye, AlertCircle, LogIn, LogOut, User, Camera, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AdminNavbar from '../admin/AdminNavbar';
 
 const useFortData = () => {
   const [fortData, setFortData] = useState(null);
@@ -101,10 +102,10 @@ const RealtimeFortDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-red-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">Loading data...</p>
+          <p className="text-slate-600 font-medium">Loading data...</p>
         </div>
       </div>
     );
@@ -112,14 +113,14 @@ const RealtimeFortDashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-red-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md border border-slate-100">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2 text-center">Setup Required</h2>
-          <p className="text-gray-600 text-center mb-4">{error}</p>
-          <div className="bg-orange-50 p-4 rounded-xl">
-            <p className="text-sm font-semibold mb-2">To get REAL-TIME data:</p>
-            <p className="text-sm text-gray-600">Check Your Internet Connection</p>
+          <h2 className="text-xl font-bold text-slate-800 mb-2 text-center">Setup Required</h2>
+          <p className="text-slate-500 text-center mb-4">{error}</p>
+          <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+            <p className="text-sm font-bold text-orange-800 mb-2">To get REAL-TIME data:</p>
+            <p className="text-sm text-slate-600">Check Your Internet Connection</p>
           </div>
         </div>
       </div>
@@ -127,89 +128,75 @@ const RealtimeFortDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-orange-100 to-red-50">
-      {/* Floating Header */}
-      <header className="fixed w-full top-0 z-50 px-4 pt-4 pb-2 transition-all">
-        <div className="container mx-auto max-w-7xl bg-white/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl border border-white/40">
-          <div className="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className={`min-h-screen ${isAdmin ? 'bg-[#F8F9FB]' : 'bg-gradient-to-br from-orange-50 via-orange-100 to-red-50'}`}>
+      {/* Admin: Use standard AdminNavbar; User/Public: use custom floating header */}
+      {isAdmin ? (
+        <AdminNavbar />
+      ) : (
+        <header className="fixed w-full top-0 z-50 px-4 pt-4 pb-2 transition-all">
+          <div className="container mx-auto max-w-7xl bg-white/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl border border-white/40">
+            <div className="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
 
-            {/* Logo */}
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg shadow-orange-500/30 shrink-0">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight">DurgSetu AI</h1>
-                <p className="text-orange-600 font-semibold text-xs tracking-wide uppercase">Protective Analytics</p>
-              </div>
-            </div>
-
-            {/* Right Actions */}
-            <div className="flex flex-wrap items-center justify-start md:justify-end gap-3 w-full md:w-auto">
-
-              {/* Live clock */}
-              <div className="hidden md:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shrink-0">
-                <div className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              {/* Logo */}
+              <div className="flex items-center gap-4">
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg shadow-orange-500/30 shrink-0">
+                  <Crown className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-sm font-bold text-slate-700">Live</span>
-                <span className="mx-2 text-slate-300">|</span>
-                <span className="text-sm font-bold text-slate-600 font-mono">
-                  {currentTime.toLocaleTimeString('en-IN', { hour12: true })}
-                </span>
+                <div>
+                  <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight">DurgSetu AI</h1>
+                  <p className="text-orange-600 font-semibold text-xs tracking-wide uppercase">Protective Analytics</p>
+                </div>
               </div>
 
-              {/* Navbar action button — role based */}
-              {isAdmin ? (
-                <button
-                  onClick={() => navigate('/admin/reports')}
-                  className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer"
-                >
-                  <ClipboardList className="w-4 h-4" />
-                  Reports Panel
-                </button>
-              ) : (
+              {/* Right Actions */}
+              <div className="flex flex-wrap items-center justify-start md:justify-end gap-3 w-full md:w-auto">
+
+                {/* Live clock */}
+                <div className="hidden md:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shrink-0">
+                  <div className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </div>
+                  <span className="text-sm font-bold text-slate-700">Live</span>
+                  <span className="mx-2 text-slate-300">|</span>
+                  <span className="text-sm font-bold text-slate-600 font-mono">
+                    {currentTime.toLocaleTimeString('en-IN', { hour12: true })}
+                  </span>
+                </div>
+
                 <button
                   onClick={() => navigate('/report')}
-                  className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer"
                 >
-                  <Camera className="w-4 h-4" />
-                  Report Damage
+                  <Camera className="w-4 h-4" /> Report Damage
                 </button>
-              )}
 
-              {/* Auth */}
-              {token ? (
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
-                  <button
-                    onClick={() => navigate('/profile')}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-orange-200/50 cursor-pointer"
-                  >
-                    <User className="w-4 h-4" /> Profile
+                {/* Auth */}
+                {token ? (
+                  <div className="flex flex-wrap items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
+                    <button onClick={() => navigate('/profile')}
+                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-orange-200/50 cursor-pointer">
+                      <User className="w-4 h-4" /> Profile
+                    </button>
+                    <button onClick={handleLogout}
+                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-slate-200 cursor-pointer">
+                      <LogOut className="w-4 h-4" /> Logout
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => navigate('/login')}
+                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer mt-2 md:mt-0">
+                    <LogIn className="w-4 h-4" /> Sign In
                   </button>
-                  <button
-                    onClick={handleLogout}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-slate-200 cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4" /> Logout
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => navigate('/login')}
-                  className="w-full md:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer mt-2 md:mt-0"
-                >
-                  <LogIn className="w-4 h-4" /> Sign In
-                </button>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 pt-32 pb-12">
+      <div className={`container mx-auto px-4 pb-12 ${isAdmin ? 'pt-8' : 'pt-32'}`}>
         <div className="max-w-6xl mx-auto">
 
           {/* Fort Title */}

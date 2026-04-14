@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import UserReportAnalysis from './UserReportAnalysis';
 import AdminNavbar from './AdminNavbar';
+import { successToast, errorToast } from '../services/swal';
 
 const FONT = "'DM Sans', 'Inter', system-ui, sans-serif";
 
@@ -109,9 +110,9 @@ export default function AdminDamageReports() {
                 headers: { Authorization: `Token ${localStorage.getItem('auth_token')}` },
                 body: fd,
             });
-            if (res.ok) { setSel(null); load(); }
-            else alert('Update failed. Please try again.');
-        } catch { alert('Network error.'); } finally { setSaving(false); }
+            if (res.ok) { setSel(null); load(); successToast('Report Updated', 'Changes saved successfully.'); }
+            else errorToast('Update Failed', 'Please try again.');
+        } catch { errorToast('Network Error', 'Connection failed. Please try again.'); } finally { setSaving(false); }
     };
 
     const pending = reports.filter(r => r.status === 'Pending').length;
