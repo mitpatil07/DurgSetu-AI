@@ -25,4 +25,4 @@ services:
     staticPublishPath: Frontend/dist
     envVars:
       - key: VITE_API_BASE
-        value: https://durgsetu-backend.onrender.com/api # Replace with your actual backend URL after first deploy
+        value: https://durgsetu-backend.onrender.com/api

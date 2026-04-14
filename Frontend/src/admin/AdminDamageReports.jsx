@@ -14,7 +14,12 @@ import { successToast, errorToast } from '../services/swal';
 import { API_BASE, apiFetch } from '../api';
 
 const FONT = "'DM Sans', 'Inter', system-ui, sans-serif";
-const formatImageUrl = (url) => typeof url === 'string' && url.startsWith('http') ? url : `${API_BASE.replace('/api', '')}${url}`;
+const formatImageUrl = (url) => {
+    if (typeof url !== 'string' || url.startsWith('http')) return url;
+    const rootDomain = API_BASE.replace(/\/api\/?$/, '');
+    return `${rootDomain}${url}`;
+};
+
 
 const STATUS = {
     'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },

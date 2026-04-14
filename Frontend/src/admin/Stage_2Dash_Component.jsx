@@ -3,14 +3,16 @@ import { TrendingUp, Activity, Shield, Zap, RefreshCw, Eye, Upload, CheckCircle,
 
 import { useNavigate } from 'react-router-dom';
 import { errorToast } from '../services/swal';
-import { apiFetch } from '../api';
+import { API_BASE, apiFetch } from '../api';
 import AdminNavbar from './AdminNavbar';
 
 const getImageUrl = (path) => {
   if (!path) return null;
   if (path.startsWith('http')) return path;
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `http://127.0.0.1:8000${cleanPath}`;
+  // Use API_BASE but remove the /api suffix if present to get the root domain for media
+  const rootDomain = API_BASE.replace(/\/api\/?$/, '');
+  return `${rootDomain}${cleanPath}`;
 };
 
 const Stage2Dashboard = ({ setActiveStage }) => {
