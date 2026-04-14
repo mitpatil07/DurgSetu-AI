@@ -16,6 +16,7 @@ import AdminSettings from './admin/AdminSettings';
 import AdminUserListing from './admin/AdminUserListing';
 import ForgotPassword from './components/Auth/ForgotPassword';
 import ResetPassword from './components/Auth/ResetPassword';
+import AdminAnalytics from './components/Analytics/AdminAnalytics';
 import { useAuth } from './context/AuthContext';
 
 const HomeRoute = () => {
@@ -127,6 +128,14 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/analytics"
+          element={
+            <ProtectedRoute>
+              <AdminAnalytics />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Stage Routes */}
         <Route
@@ -149,7 +158,7 @@ const App = () => {
         {/* Redirects */}
         <Route path="/dashboard1" element={<Navigate to="/stage1" replace />} />
         <Route path="/dashboard2" element={<Navigate to="/stage2" replace />} />
-        <Route path="/analytics" element={<Navigate to="/admin/reports" replace />} />
+        <Route path="/analytics" element={<Navigate to="/admin/analytics" replace />} />
 
       </Routes>
     </BrowserRouter>

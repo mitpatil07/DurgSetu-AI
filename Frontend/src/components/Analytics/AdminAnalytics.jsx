@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAnalyticsData } from '../../services/analyticsService';
 import Alert from '../UI/Alert';
+import UserReportAnalysis from '../../admin/UserReportAnalysis';
 
 export const AdminAnalytics = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -41,29 +42,31 @@ export const AdminAnalytics = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-slate-600">Loading analytics...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+          <p className="mt-4 text-slate-600 font-bold">Loading analytics...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50 pb-12">
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Analytics</h1>
-          <p className="text-slate-600 mt-2">Overview of all user requests and complaints</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">Platform Analytics</h1>
+          <p className="text-sm font-bold text-slate-500 mt-2 uppercase tracking-widest">Global Overview • Real-time Data</p>
         </div>
 
         {alert && (
-          <Alert
-            type={alert.type}
-            title={alert.title}
-            message={alert.message}
-            onClose={() => setAlert(null)}
-            dismissible
-          />
+          <div className="mb-6">
+            <Alert
+              type={alert.type}
+              title={alert.title}
+              message={alert.message}
+              onClose={() => setAlert(null)}
+              dismissible
+            />
+          </div>
         )}
 
         {/* Stats Cards */}
@@ -94,66 +97,61 @@ export const AdminAnalytics = () => {
         </div>
 
         {/* Breakdown Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-xl font-bold text-slate-900">Request Status Breakdown</h2>
+        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mb-12">
+          <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Request Status Breakdown</h2>
+            <div className="text-[10px] font-black text-orange-600 bg-orange-100 px-3 py-1 rounded-full uppercase tracking-widest">Detailed Analysis</div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-slate-50/30 border-b border-slate-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Count</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Percentage</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700">Progress</th>
+                  <th className="px-8 py-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Status Category</th>
+                  <th className="px-8 py-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Total Count</th>
+                  <th className="px-8 py-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Distribution</th>
+                  <th className="px-8 py-4 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest">Visual Progress</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                      Completed
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-900 font-semibold">{analytics?.completed || 0}</td>
-                  <td className="px-6 py-4 text-slate-600">{analytics?.completionRate || 0}%</td>
-                  <td className="px-6 py-4">
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: `${analytics?.completionRate || 0}%` }}></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                      Pending
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-900 font-semibold">{analytics?.pending || 0}</td>
-                  <td className="px-6 py-4 text-slate-600">{analytics?.pendingRate || 0}%</td>
-                  <td className="px-6 py-4">
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div className="bg-yellow-500 h-2 rounded-full" style={{ width: `${analytics?.pendingRate || 0}%` }}></div>
-                    </div>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                      In Progress
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-900 font-semibold">{analytics?.inProgress || 0}</td>
-                  <td className="px-6 py-4 text-slate-600">{analytics?.inProgressRate || 0}%</td>
-                  <td className="px-6 py-4">
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${analytics?.inProgressRate || 0}%` }}></div>
-                    </div>
-                  </td>
-                </tr>
+              <tbody className="divide-y divide-slate-50">
+                {[
+                  { label: 'Completed', count: analytics?.completed, rate: analytics?.completionRate, color: 'bg-emerald-500', bg: 'bg-emerald-100', text: 'text-emerald-800' },
+                  { label: 'Pending', count: analytics?.pending, rate: analytics?.pendingRate, color: 'bg-amber-500', bg: 'bg-amber-100', text: 'text-amber-800' },
+                  { label: 'In Progress', count: analytics?.inProgress, rate: analytics?.inProgressRate, color: 'bg-indigo-500', bg: 'bg-indigo-100', text: 'text-indigo-800' }
+                ].map((row, i) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-8 py-5">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${row.bg} ${row.text}`}>
+                        {row.label}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-slate-900 font-extrabold text-lg">{row.count || 0}</td>
+                    <td className="px-8 py-5 text-slate-500 font-bold text-sm">{row.rate || 0}%</td>
+                    <td className="px-8 py-5">
+                      <div className="w-48 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                        <div className={`${row.color} h-full rounded-full transition-all duration-700 group-hover:opacity-80`} style={{ width: `${row.rate || 0}%` }}></div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* User Damage Reports Integration */}
+        <div className="mt-12 border-t border-slate-100 pt-12">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-3 bg-indigo-100 rounded-2xl text-indigo-600">
+              <Activity className="w-6 h-6 " />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 leading-none uppercase tracking-tight">Crowdsourced Damage Analysis</h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                User Reports • Severity Intelligence • Site Insights
+              </p>
+            </div>
+          </div>
+          <UserReportAnalysis embedded={true} />
         </div>
       </div>
     </div>

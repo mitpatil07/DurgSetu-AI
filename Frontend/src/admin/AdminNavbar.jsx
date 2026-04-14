@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext';
 const NAV_LINKS = [
     { icon: Home, label: 'Dashboard', path: '/admin/dashboard' },
     { icon: FileText, label: 'Reports', path: '/admin/reports' },
-    { icon: BarChart2, label: 'Analytics', path: '/stage1' },
+    { icon: BarChart2, label: 'Analytics', path: '/admin/analytics' },
     { icon: Users, label: 'Users', path: '/users' },
 ];
 
@@ -51,7 +51,7 @@ const AdminNavbar = ({ onRefresh, pendingCount = 0 }) => {
                                 const active = activePath === path ||
                                     (path === '/admin/dashboard' && (activePath === '/admin' || activePath === '/admin/dashboard')) ||
                                     (path === '/admin/reports' && (activePath === '/admin/reports' || activePath === '/reports')) ||
-                                    (path === '/stage1' && (activePath === '/stage1' || activePath === '/analytics'));
+                                    (path === '/admin/analytics' && (activePath === '/admin/analytics' || activePath === '/analytics'));
                                 return (
                                     <button
                                         key={label}
