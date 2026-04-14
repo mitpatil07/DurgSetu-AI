@@ -5,7 +5,7 @@ import {
     Upload, X, CheckCircle, ImageIcon, ChevronDown, User,
     Mail, ArrowLeft
 } from 'lucide-react';
-import { errorToast } from '../services/swal';
+import { errorToast, successToast } from '../services/swal';
 
 const DAMAGE_TYPES = [
     'Structural Crack', 'Wall Damage', 'Foundation Issue',
@@ -99,7 +99,10 @@ export default function UserReport() {
                 body: fd,
             });
 
-            if (res.ok) { setSuccess(true); }
+            if (res.ok) {
+                successToast('Report Submitted', 'Your report has been successfully submitted to our conservation team.');
+                navigate('/user/dashboard');
+            }
             else {
                 const data = await res.json();
                 errorToast('Submission Failed', data.error || 'Please try again.');
@@ -108,37 +111,7 @@ export default function UserReport() {
         finally { setLoading(false); }
     };
 
-    // ── Success Screen ─────────────────────────────────────────────
-    if (success) {
-        return (
-            <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
-                <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 p-10 flex flex-col items-center text-center border border-slate-100">
-                    <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-[2rem] flex items-center justify-center mb-8 shadow-xl shadow-emerald-200">
-                        <CheckCircle className="w-12 h-12 text-white" />
-                    </div>
-                    <span className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-2">Report Submitted</span>
-                    <h2 className="text-3xl font-black text-slate-900 mb-3">Thank You!</h2>
-                    <p className="text-slate-500 text-sm leading-relaxed mb-8 font-medium">
-                        Your report has been successfully submitted to our conservation team. You can track its live status from your dashboard.
-                    </p>
-                    <div className="space-y-3 w-full">
-                        <button
-                            onClick={() => { setSuccess(false); setImages([]); setFormData(p => ({ ...p, fort_name: '', location: '', damage_type: '', severity: '', description: '' })); }}
-                            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-all cursor-pointer"
-                        >
-                            Submit Another Report
-                        </button>
-                        <button
-                            onClick={() => navigate('/user/dashboard')}
-                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black py-3.5 rounded-xl shadow-lg shadow-orange-200 transition-all hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-                        >
-                            View Dashboard
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+
 
     return (
         <div className="min-h-screen bg-[#F8F9FB] flex flex-col">

@@ -8,7 +8,7 @@ import {
 const STATUS = {
     'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
     'Reviewed': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-400' },
-    'Action Taken': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
+    'Action Taken': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500', label: 'Resolved' },
     'Dismissed': { bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', dot: 'bg-slate-400' },
 };
 
@@ -24,7 +24,7 @@ const Badge = ({ status }) => {
     return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-            {status}
+            {s.label || status}
         </span>
     );
 };
@@ -154,10 +154,10 @@ export default function UserReportAnalysis({ initialReports = null, embedded = f
 
     const SEVERITY_ORDER = ['Critical', 'Severe', 'Moderate', 'Minor'];
     const STATUS_ITEMS = [
-        { key: 'Pending', color: 'bg-amber-400', textColor: 'text-amber-700', bg: 'bg-amber-50' },
-        { key: 'Reviewed', color: 'bg-blue-400', textColor: 'text-blue-700', bg: 'bg-blue-50' },
-        { key: 'Action Taken', color: 'bg-emerald-500', textColor: 'text-emerald-700', bg: 'bg-emerald-50' },
-        { key: 'Dismissed', color: 'bg-slate-400', textColor: 'text-slate-600', bg: 'bg-slate-100' },
+        { key: 'Pending', color: 'bg-amber-400', textColor: 'text-amber-700', bg: 'bg-amber-50', display: 'Pending' },
+        { key: 'Reviewed', color: 'bg-blue-400', textColor: 'text-blue-700', bg: 'bg-blue-50', display: 'Reviewed' },
+        { key: 'Action Taken', color: 'bg-emerald-500', textColor: 'text-emerald-700', bg: 'bg-emerald-50', display: 'Resolved' },
+        { key: 'Dismissed', color: 'bg-slate-400', textColor: 'text-slate-600', bg: 'bg-slate-100', display: 'Dismissed' },
     ];
 
     if (total === 0 && users.length === 0) {
@@ -206,12 +206,12 @@ export default function UserReportAnalysis({ initialReports = null, embedded = f
                     )}
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {STATUS_ITEMS.map(({ key, color, textColor, bg }) => (
+                    {STATUS_ITEMS.map(({ key, display, color, textColor, bg }) => (
                         <div key={key} className={`${bg} rounded-xl p-3 text-center border border-white/50 shadow-sm`}>
                             <p className={`text-2xl font-extrabold ${textColor}`}>{byStatus[key]}</p>
                             <div className="flex items-center justify-center gap-1.5 mt-1">
                                 <span className={`w-2 h-2 rounded-full ${color}`} />
-                                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{key}</p>
+                                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{display}</p>
                             </div>
                             <p className="text-[10px] text-slate-400 mt-0.5 font-medium">{total ? Math.round((byStatus[key] / total) * 100) : 0}% of total</p>
                         </div>

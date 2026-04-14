@@ -18,7 +18,7 @@ const formatImageUrl = (url) => typeof url === 'string' && url.startsWith('http'
 const STATUS = {
     'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
     'Reviewed': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-400' },
-    'Action Taken': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
+    'Action Taken': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500', label: 'Resolved' },
     'Dismissed': { bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', dot: 'bg-slate-400' },
 };
 
@@ -34,7 +34,7 @@ const Badge = ({ status }) => {
     return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-            {status}
+            {s.label || status}
         </span>
     );
 };
@@ -349,10 +349,10 @@ export default function AdminDamageReports() {
                                     <div className="relative">
                                         <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
                                             className="w-full appearance-none pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400 transition cursor-pointer">
-                                            <option>Pending</option>
-                                            <option>Reviewed</option>
-                                            <option>Action Taken</option>
-                                            <option>Dismissed</option>
+                                            <option value="Pending">Pending</option>
+                                            <option value="Reviewed">Reviewed</option>
+                                            <option value="Action Taken">Resolved</option>
+                                            <option value="Dismissed">Dismissed</option>
                                         </select>
                                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                                     </div>
