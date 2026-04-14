@@ -12,7 +12,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-lc(3e&ii9@mvo3&9rer)ls2l1q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-_allowed = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+_allowed = os.getenv('ALLOWED_HOSTS', '*') # Default to '*' for tunnel support
 ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 
 

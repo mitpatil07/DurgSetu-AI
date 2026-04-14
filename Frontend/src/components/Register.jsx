@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Lock, AlertCircle, Loader, User, Shield } from 'lucide-react';
-import { API_BASE } from '../api';
+import { API_BASE, apiFetch } from '../api';
 import { useAuth } from '../context/AuthContext';
 import AnimatedBackground from './AnimatedBackground';
 
@@ -25,9 +25,8 @@ const Register = () => {
         }
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE}/register/`, {
+            const response = await apiFetch('/register/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username: formData.username,
                     email: formData.email,
@@ -35,6 +34,7 @@ const Register = () => {
                 }),
             });
             const data = await response.json();
+
             if (response.ok) {
                 login(data);
                 navigate('/user/dashboard');
