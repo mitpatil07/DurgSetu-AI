@@ -6,27 +6,26 @@ load_dotenv(override=True)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-lc(3e&ii9@mvo3&9rer)ls2l1q@fru1dn2$tn*8$c')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev')
 
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = True  # keep True for now (important for debugging)
 
-# ✅ Allow all (good for tunnel)
-_allowed = os.getenv('ALLOWED_HOSTS', '*')
-ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
+# ✅ FIXED: Hardcoded (no env issues)
+ALLOWED_HOSTS = [
+    "hardwood-bumper-lowest-remain.trycloudflare.com",
+    "127.0.0.1",
+    "localhost",
+]
 
-# ✅ REQUIRED for Cloudflare + Vercel
+# ✅ REQUIRED for Cloudflare + frontend
 CSRF_TRUSTED_ORIGINS = [
     "https://hardwood-bumper-lowest-remain.trycloudflare.com",
     "https://durgsetuai.vercel.app",
 ]
 
-# ✅ FIX PROXY (VERY IMPORTANT)
+# ✅ FIX PROXY (CRITICAL)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True
-
-# ✅ Optional (safe for now)
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+USE_X_FORWARDED_HOST = True   # ✅ FIXED (no comma)
 
 # -----------------------------
 # APPS
@@ -154,6 +153,3 @@ EMAIL_USE_TLS = True
 # -----------------------------
 NVIDIA_API_KEY = os.getenv('NVIDIA_API_KEY')
 ADMIN_REGISTRATION_SECRET = os.getenv('ADMIN_REGISTRATION_SECRET', 'durgsetu_admin_2026')
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True
