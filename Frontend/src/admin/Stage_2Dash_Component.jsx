@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Activity, Shield, Zap, RefreshCw, Eye, Upload, Camera, CheckCircle, AlertCircle, X, Image, MapPin, BarChart3, AlertTriangle, User, Loader } from 'lucide-react';
+import { TrendingUp, Activity, Shield, Zap, RefreshCw, Eye, Upload, CheckCircle, AlertCircle, X, Image, MapPin, BarChart3, AlertTriangle, Loader } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 import { errorToast } from '../services/swal';
 import { apiFetch } from '../api';
+import AdminNavbar from './AdminNavbar';
 
 const Stage2Dashboard = ({ setActiveStage }) => {
   const navigate = useNavigate();
@@ -209,15 +210,23 @@ const Stage2Dashboard = ({ setActiveStage }) => {
     <div className="min-h-screen bg-slate-50">
       {showUpload && <UploadModal fortsData={fortsData} selectedFort={selectedFort} setSelectedFort={setSelectedFort} selectedFile={selectedFile} preview={preview} uploading={uploading} uploadResult={uploadResult} onClose={() => { setShowUpload(false); setUploadResult(null); setSelectedFile(null); setPreview(null); }} onFileSelect={handleFileSelect} onUpload={handleUpload} />}
       {selectedFortDetails && <FortDetailModal fort={selectedFortDetails} onClose={() => setSelectedFortDetails(null)} onRefresh={fetchData} />}
-      <Header onUpload={() => setShowUpload(true)} onRefresh={fetchData} onProfile={() => navigate('/profile')} onReturn={() => navigate('/')} />
-      <div className="max-w-7xl mx-auto px-6 pt-32 pb-10">
+      <AdminNavbar onRefresh={fetchData} />
+      <div className="max-w-7xl mx-auto px-6 pt-8 pb-10">
         <MetricsGrid metrics={metrics} />
         <div className="mb-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-extrabold text-slate-800">Fort Monitoring Panel</h2>
-            <div className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm text-slate-600">
-              <BarChart3 className="w-5 h-5 text-orange-500" />
-              <span className="font-bold">{fortsData.length} Tracked</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowUpload(true)}
+                className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2.5 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold text-sm shadow-md shadow-orange-500/20 cursor-pointer"
+              >
+                <Upload className="w-4 h-4" /> Upload Image
+              </button>
+              <div className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm text-slate-600">
+                <BarChart3 className="w-5 h-5 text-orange-500" />
+                <span className="font-bold">{fortsData.length} Tracked</span>
+              </div>
             </div>
           </div>
           <FortsGrid fortsData={fortsData} onViewDetails={setSelectedFortDetails} />
@@ -226,37 +235,6 @@ const Stage2Dashboard = ({ setActiveStage }) => {
     </div>
   );
 };
-const Header = ({ onUpload, onRefresh, onProfile, onReturn }) => (
-  <header className="fixed w-full top-0 z-50 px-4 pt-4 pb-2 transition-all">
-    <div className="container mx-auto max-w-7xl bg-white/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl border border-white/40">
-      <div className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg shadow-orange-500/30">
-            <Shield className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight">Live Verification</h1>
-            <p className="text-orange-600 font-semibold text-xs tracking-wide uppercase">AI-powered structural monitoring</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 md:gap-3 w-full md:w-auto">
-          <button onClick={onUpload} className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-5 py-2.5 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all hover:-translate-y-0.5 active:scale-95 cursor-pointer font-bold shadow-lg shadow-orange-500/30 flex items-center gap-2 text-sm">
-            <Upload className="w-4 h-4" />Upload Image
-          </button>
-          <button onClick={onRefresh} className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-sm font-bold flex items-center gap-2 text-sm">
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          {onProfile && (
-            <button onClick={onProfile} className="bg-orange-50 text-orange-700 border border-orange-200/50 px-4 py-2.5 rounded-xl hover:bg-orange-100 transition-all hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-sm font-bold flex items-center gap-2 text-sm">
-              <User className="w-4 h-4" /> Profile
-            </button>
-          )}
-          {onReturn && <button onClick={onReturn} className="bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl hover:bg-slate-200 transition-all hover:-translate-y-0.5 active:scale-95 cursor-pointer shadow-sm font-bold text-sm">Return</button>}
-        </div>
-      </div>
-    </div>
-  </header>
-);
 
 const MetricsGrid = ({ metrics }) => {
   const metricsData = [

@@ -86,13 +86,11 @@ export default function AdminDamageReports() {
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('auth_token');
-            if (!token || localStorage.getItem('is_staff') !== 'true') { navigate('/login'); return; }
             const res = await apiFetch('/admin-reports/');
             if (res.ok) { const d = await res.json(); setReports(Array.isArray(d) ? d : (d.results || [])); }
             else setError('Could not load reports.');
         } catch { setError('Network error.'); } finally { setLoading(false); }
-    }, [navigate]);
+    }, []);
 
     useEffect(() => { load(); }, [load]);
 

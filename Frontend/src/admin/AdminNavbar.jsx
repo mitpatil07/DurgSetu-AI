@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Shield, Home, FileText, BarChart2, Users,
-    Search, RefreshCw, Bell, ChevronDown,
-    Settings, LogOut, Menu, X, ChevronRight
+    RefreshCw, ChevronDown,
+    Settings, LogOut, Menu, ChevronRight
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const NAV_LINKS = [
     { icon: Home, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: FileText, label: 'Reports', path: '/reports' },
-    { icon: BarChart2, label: 'Analytics', path: '/analytics' },
+    { icon: FileText, label: 'Reports', path: '/admin/reports' },
+    { icon: BarChart2, label: 'Analytics', path: '/stage1' },
     { icon: Users, label: 'Users', path: '/users' },
 ];
 
@@ -18,6 +19,7 @@ const AdminNavbar = ({ onRefresh, pendingCount = 0 }) => {
     const location = useLocation();
     const [profileOpen, setProfileOpen] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { logout } = useAuth();
 
     const adminName = localStorage.getItem('username') || 'Admin';
     const activePath = location.pathname;
@@ -46,11 +48,10 @@ const AdminNavbar = ({ onRefresh, pendingCount = 0 }) => {
                         {/* Nav links — desktop */}
                         <nav className="hidden md:flex items-center gap-0.5 flex-1 ml-4">
                             {NAV_LINKS.map(({ icon: Icon, label, path }) => {
-                                const isDashboard = path === '/admin';
-                                const active = path === activePath ||
-                                    (isDashboard && (activePath === '/admin/dashboard' || activePath === '/stage1' || activePath === '/stage2')) ||
-                                    (path === '/reports' && activePath === '/admin/reports') ||
-                                    (path === '/analytics' && activePath === '/analytics');
+                                const active = activePath === path ||
+                                    (path === '/admin/dashboard' && (activePath === '/admin' || activePath === '/admin/dashboard')) ||
+                                    (path === '/admin/reports' && (activePath === '/admin/reports' || activePath === '/reports')) ||
+                                    (path === '/stage1' && (activePath === '/stage1' || activePath === '/analytics'));
                                 return (
                                     <button
                                         key={label}
@@ -138,7 +139,7 @@ const AdminNavbar = ({ onRefresh, pendingCount = 0 }) => {
                                                 </button>
                                                 <div className="h-px bg-slate-100 my-1 mx-2" />
                                                 <button
-                                                    onClick={() => { localStorage.clear(); navigate('/login'); }}
+                                                    onClick={() => { logout(); navigate('/login'); }}
                                                     className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all cursor-pointer"
                                                 >
                                                     <LogOut className="w-4 h-4" /> Sign out
@@ -163,7 +164,7 @@ const AdminNavbar = ({ onRefresh, pendingCount = 0 }) => {
                 {mobileOpen && (
                     <div className="md:hidden border-t border-slate-100 bg-white px-4 py-3 space-y-1">
                         {NAV_LINKS.map(({ icon: Icon, label, path }) => {
-                            const active = path === activePath;
+                            const active = activePath === path;
                             return (
                                 <button
                                     key={label}

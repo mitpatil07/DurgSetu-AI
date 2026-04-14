@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Activity, Shield, TrendingUp, Eye, AlertCircle, LogIn, LogOut, User, Camera, ClipboardList } from 'lucide-react';
+import { Activity, Shield, TrendingUp, Eye, AlertCircle, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AdminNavbar from '../admin/AdminNavbar';
 
@@ -84,21 +84,7 @@ const useFortData = () => {
 
 const RealtimeFortDashboard = () => {
   const { fortData, loading, error } = useFortData();
-  const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
-
-  const token = localStorage.getItem('auth_token');
-  const isAdmin = localStorage.getItem('is_staff') === 'true';
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
-  };
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   if (loading) {
     return (
@@ -128,75 +114,11 @@ const RealtimeFortDashboard = () => {
   }
 
   return (
-    <div className={`min-h-screen ${isAdmin ? 'bg-[#F8F9FB]' : 'bg-gradient-to-br from-orange-50 via-orange-100 to-red-50'}`}>
-      {/* Admin: Use standard AdminNavbar; User/Public: use custom floating header */}
-      {isAdmin ? (
-        <AdminNavbar />
-      ) : (
-        <header className="fixed w-full top-0 z-50 px-4 pt-4 pb-2 transition-all">
-          <div className="container mx-auto max-w-7xl bg-white/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl border border-white/40">
-            <div className="px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-
-              {/* Logo */}
-              <div className="flex items-center gap-4">
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg shadow-orange-500/30 shrink-0">
-                  <Crown className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 tracking-tight">DurgSetu AI</h1>
-                  <p className="text-orange-600 font-semibold text-xs tracking-wide uppercase">Protective Analytics</p>
-                </div>
-              </div>
-
-              {/* Right Actions */}
-              <div className="flex flex-wrap items-center justify-start md:justify-end gap-3 w-full md:w-auto">
-
-                {/* Live clock */}
-                <div className="hidden md:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 shrink-0">
-                  <div className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                  </div>
-                  <span className="text-sm font-bold text-slate-700">Live</span>
-                  <span className="mx-2 text-slate-300">|</span>
-                  <span className="text-sm font-bold text-slate-600 font-mono">
-                    {currentTime.toLocaleTimeString('en-IN', { hour12: true })}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => navigate('/report')}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer"
-                >
-                  <Camera className="w-4 h-4" /> Report Damage
-                </button>
-
-                {/* Auth */}
-                {token ? (
-                  <div className="flex flex-wrap items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
-                    <button onClick={() => navigate('/profile')}
-                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-orange-200/50 cursor-pointer">
-                      <User className="w-4 h-4" /> Profile
-                    </button>
-                    <button onClick={handleLogout}
-                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm text-sm font-bold border border-slate-200 cursor-pointer">
-                      <LogOut className="w-4 h-4" /> Logout
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => navigate('/login')}
-                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-2.5 rounded-xl transition-all hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-orange-500/30 text-sm font-bold cursor-pointer mt-2 md:mt-0">
-                    <LogIn className="w-4 h-4" /> Sign In
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
-      )}
+    <div className="min-h-screen bg-[#F8F9FB]">
+      <AdminNavbar />
 
       {/* Main Content */}
-      <div className={`container mx-auto px-4 pb-12 ${isAdmin ? 'pt-8' : 'pt-32'}`}>
+      <div className="container mx-auto px-4 pb-12 pt-8">
         <div className="max-w-6xl mx-auto">
 
           {/* Fort Title */}
@@ -266,10 +188,8 @@ const RealtimeFortDashboard = () => {
             </div>
           </div>
 
-          {/* Action Cards:
-              Admin → 3 cols: Stage 1 | Stage 2 | User Reports
-              User  → 2 cols: Stage 1 | Stage 2 + Report Damage panel below */}
-          <div className={`grid grid-cols-1 gap-6 mb-6 ${isAdmin ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+          {/* Action Cards: Stage 1 | Stage 2 | User Reports */}
+          <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-3">
 
             {/* Stage 1 */}
             <button
@@ -311,55 +231,26 @@ const RealtimeFortDashboard = () => {
               </div>
             </button>
 
-            {/* User Reports — Admin only (3rd card) */}
-            {isAdmin && (
-              <button
-                onClick={() => navigate('/admin/reports')}
-                className="group relative bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 text-left w-full cursor-pointer"
-              >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-colors group-hover:bg-orange-500/20"></div>
-                <div className="relative z-10 flex flex-col h-full justify-between gap-12">
-                  <div className="bg-orange-500/20 w-fit p-4 rounded-2xl border border-orange-500/30 shadow-inner group-hover:border-orange-400/50 transition-colors">
-                    <ClipboardList className="w-8 h-8 text-orange-400 group-hover:text-orange-300" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl md:text-2xl font-bold text-white mb-2">User Reports</h3>
-                    <p className="text-slate-400 font-medium mb-4">Review damage reports from users, update repair status, and upload repair documentation.</p>
-                    <div className="inline-flex items-center gap-2 text-sm font-bold text-orange-400 tracking-wide">
-                      VIEW REPORTS <ClipboardList className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </div>
-                </div>
-              </button>
-            )}
-          </div>
-
-          {/* Report Damage panel — users only */}
-          {!isAdmin && (
+            {/* User Reports */}
             <button
-              onClick={() => navigate('/report')}
-              className="group relative w-full bg-white border-2 border-dashed border-orange-200 hover:border-orange-400 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10 text-left cursor-pointer mb-8"
+              onClick={() => navigate('/admin/reports')}
+              className="group relative bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 text-left w-full cursor-pointer"
             >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-50 to-red-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-700" />
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
-                <div className="bg-orange-100 group-hover:bg-orange-200 w-fit p-4 rounded-2xl border border-orange-200 transition-colors shrink-0">
-                  <Camera className="w-8 h-8 text-orange-600" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-colors group-hover:bg-orange-500/20"></div>
+              <div className="relative z-10 flex flex-col h-full justify-between gap-12">
+                <div className="bg-orange-500/20 w-fit p-4 rounded-2xl border border-orange-500/30 shadow-inner group-hover:border-orange-400/50 transition-colors">
+                  <ClipboardList className="w-8 h-8 text-orange-400 group-hover:text-orange-300" />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-xl md:text-2xl font-bold text-slate-800">Report Fort Damage</h3>
-                    <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">Public</span>
+                <div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2">User Reports</h3>
+                  <p className="text-slate-400 font-medium mb-4">Review damage reports from users, update repair status, and upload repair documentation.</p>
+                  <div className="inline-flex items-center gap-2 text-sm font-bold text-orange-400 tracking-wide">
+                    VIEW REPORTS <ClipboardList className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </div>
-                  <p className="text-slate-500 font-medium">
-                    Spotted a crack, wall damage, or structural issue? Upload photos and submit a report — our AI and admin team will review it.
-                  </p>
-                </div>
-                <div className="inline-flex items-center gap-2 text-sm font-bold text-orange-500 group-hover:text-orange-600 tracking-wide shrink-0 transition-colors">
-                  SUBMIT REPORT <Camera className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
             </button>
-          )}
+          </div>
 
         </div>
       </div>

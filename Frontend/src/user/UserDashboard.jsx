@@ -7,6 +7,7 @@ import {
     TrendingUp, Star, Sparkles
 } from 'lucide-react';
 import { API_BASE, apiFetch } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const STATUS = {
     'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400', label: 'Pending Review' },
@@ -40,13 +41,13 @@ export default function UserDashboard() {
     const [error, setError] = useState('');
     const [sel, setSel] = useState(null);
     const navigate = useNavigate();
+    const { token, logout } = useAuth();
     const username = localStorage.getItem('username') || 'User';
     const initial = username[0]?.toUpperCase();
 
     const load = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('auth_token');
             if (!token) { navigate('/login'); return; }
             const res = await apiFetch('/user-reports/');
             if (res.ok) {
@@ -95,7 +96,7 @@ export default function UserDashboard() {
                             <span className="text-sm font-bold text-slate-700 px-1">{username}</span>
                         </div>
 
-                        <button onClick={() => { localStorage.clear(); navigate('/login'); }}
+                        <button onClick={() => { logout(); navigate('/login'); }}
                             className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-red-600 p-2 sm:px-4 sm:py-2.5 rounded-xl hover:bg-red-50 border border-transparent hover:border-red-100 transition-all cursor-pointer">
                             <LogOut className="w-4 h-4" />
                             <span className="hidden sm:inline">Logout</span>
