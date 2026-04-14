@@ -13,6 +13,7 @@ import AdminNavbar from './AdminNavbar';
 import { successToast, errorToast } from '../services/swal';
 
 const FONT = "'DM Sans', 'Inter', system-ui, sans-serif";
+const formatImageUrl = (url) => typeof url === 'string' && url.startsWith('http') ? url : `http://127.0.0.1:8000${url}`;
 
 const STATUS = {
     'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
@@ -332,8 +333,8 @@ export default function AdminDamageReports() {
                             {sel.repair_image && (
                                 <div>
                                     <Label>Previous Repair Photo</Label>
-                                    <div className="relative group cursor-pointer rounded-xl overflow-hidden border border-emerald-200 w-fit" onClick={() => setLightbox(`http://127.0.0.1:8000${sel.repair_image}`)}>
-                                        <img src={`http://127.0.0.1:8000${sel.repair_image}`} alt="Repair" className="h-36 w-full object-cover transition-transform group-hover:scale-105 duration-200" />
+                                    <div className="relative group cursor-pointer rounded-xl overflow-hidden border border-emerald-200 w-fit" onClick={() => setLightbox(formatImageUrl(sel.repair_image))}>
+                                        <img src={formatImageUrl(sel.repair_image)} alt="Repair" className="max-w-full h-auto max-h-64 object-contain transition-transform group-hover:scale-105 duration-200" />
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
                                             <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </div>
