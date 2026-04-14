@@ -1,17 +1,17 @@
 
 
-let base = import.meta.env.VITE_API_BASE || (
+const base = import.meta.env.VITE_API_BASE || (
     window.location.hostname === "localhost"
         ? "http://127.0.0.1:8000/api"
         : "https://hardwood-bumper-lowest-remain.trycloudflare.com/api"
 );
 
-// Ensure the base URL ends with /api (without adding it twice)
-if (base && !base.endsWith('/api') && !base.endsWith('/api/')) {
-    base = base.endsWith('/') ? `${base}api` : `${base}/api`;
-}
+// Normalize: ensure it ends with /api but DOES NOT end with a slash
+// (apiFetch prepends a slash, so we want "https://domain.com/api" + "/path")
+export const API_BASE = base.replace(/\/$/, '').replace(/\/api$/, '') + '/api';
 
-export const API_BASE = base;
+console.log("Resolved API_BASE:", API_BASE);
+
 
 /**
  * A thin fetch wrapper that:
