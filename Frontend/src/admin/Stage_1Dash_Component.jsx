@@ -29,8 +29,8 @@ const Stage1Dashboard = () => {
       };
 
       const [statsRes, analyticsRes] = await Promise.all([
-        fetch('http://127.0.0.1:8000/api/forts/statistics/?mine=true', { headers }),
-        fetch('http://127.0.0.1:8000/api/forts/analytics/?mine=true', { headers })
+        fetch('http://127.0.0.1:8000/api/forts/statistics/', { headers }),
+        fetch('http://127.0.0.1:8000/api/forts/analytics/', { headers })
       ]);
 
       if (!statsRes.ok || !analyticsRes.ok) throw new Error('Failed to fetch data');
@@ -64,7 +64,19 @@ const Stage1Dashboard = () => {
   const riskDist = stats?.risk_distribution || {};
   const leaderboard = analytics?.leaderboard || [];
   const criticalAlerts = analytics?.critical_alerts || [];
-  const trendData = analytics?.trend_data || [];
+  let trendData = analytics?.trend_data || [];
+
+  // Build fallback trend from leaderboard health/risk if analytics returns nothing
+  if (!trendData.length && leaderboard.length) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    trendData = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const avgHealth = leaderboard.reduce((s, f) => s + (f.health || 0), 0) / (leaderboard.length || 1);
+      const avgRisk = leaderboard.reduce((s, f) => s + (f.risk_score || 0), 0) / (leaderboard.length || 1);
+      return { name: months[d.getMonth()], health: Math.round(avgHealth), risk: parseFloat(avgRisk.toFixed(1)) };
+    });
+  }
 
   // Data for Risk Distribution Pie Chart
   const pieData = [
