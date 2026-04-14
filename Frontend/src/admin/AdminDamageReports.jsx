@@ -324,8 +324,8 @@ export default function AdminDamageReports() {
                                     <Label>Submitted Photos — click to expand</Label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {sel.images.map(img => (
-                                            <div key={img.id} className="relative group cursor-pointer rounded-xl overflow-hidden border border-slate-200 aspect-square" onClick={() => setLightbox(img.image)}>
-                                                <img src={img.image} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-200" />
+                                            <div key={img.id} className="relative group cursor-pointer rounded-xl overflow-hidden border border-slate-200 aspect-square" onClick={() => setLightbox(formatImageUrl(img.image))}>
+                                                <img src={formatImageUrl(img.image)} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-200" />
                                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
                                                     <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                                                 </div>
