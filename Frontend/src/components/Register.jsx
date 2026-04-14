@@ -86,22 +86,22 @@ const Register = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Username</label>
-                                    <input type="text" name="username" value={formData.username} onChange={handleChange} required
+                                    <input type="text" name="username" placeholder='Username' value={formData.username} onChange={handleChange} required
                                         className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-orange-500 outline-none text-sm font-medium" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Email</label>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange} required
+                                    <input type="email" name="email" placeholder='Email' value={formData.email} onChange={handleChange} required
                                         className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-orange-500 outline-none text-sm font-medium" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Password</label>
-                                    <input type="password" name="password" value={formData.password} onChange={handleChange} required
+                                    <input type="password" name="password" placeholder='Password' value={formData.password} onChange={handleChange} required
                                         className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-orange-500 outline-none text-sm font-medium" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Confirm</label>
-                                    <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required
+                                    <input type="password" name="confirmPassword" placeholder='Confirm Password' value={formData.confirmPassword} onChange={handleChange} required
                                         className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-orange-500 outline-none text-sm font-medium" />
                                 </div>
                             </div>
