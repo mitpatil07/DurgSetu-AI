@@ -1,0 +1,28 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: durgsetu-backend
+    runtime: python
+    region: singapore
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && chmod +x start.sh && ./start.sh
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+
+  # Frontend Web Service
+  - type: web
+    name: durgsetu-frontend
+    runtime: static
+    region: singapore
+    buildCommand: cd Frontend && npm install && npm run build
+    staticPublishPath: Frontend/dist
+    envVars:
+      - key: VITE_API_BASE
+        value: https://durgsetu-backend.onrender.com/api # Replace with your actual backend URL after first deploy
