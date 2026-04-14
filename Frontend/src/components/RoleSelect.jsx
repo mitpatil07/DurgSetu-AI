@@ -1,13 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, UserCircle, Landmark } from 'lucide-react';
+import AnimatedBackground from './AnimatedBackground';
 
 const RoleSelect = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-8">
-            <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-100">
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 relative">
+            <AnimatedBackground />
+            <div className="w-full max-w-5xl glass-effect rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-100 relative z-10">
 
                 {/* Brand Side */}
                 <div className="w-full md:w-5/12 bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">

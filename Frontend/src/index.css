@@ -64,3 +64,13 @@ body {
   padding: 0.9rem 1.25rem !important;
   border-radius: 1rem !important;
 }
+
+/* ── Custom Animations ───────────────────────────────── */
+/* Canvas-based animations are now handled by AnimatedBackground.jsx */
+
+/* Glassmorphism utility */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+}

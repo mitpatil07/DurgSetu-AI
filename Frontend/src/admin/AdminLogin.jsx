@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, AlertCircle, Loader, User } from 'lucide-react';
 import { API_BASE } from '../api';
 import { useAuth } from '../context/AuthContext';
+import AnimatedBackground from '../components/AnimatedBackground';
 
 const AdminLogin = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
@@ -45,8 +46,9 @@ const AdminLogin = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-5xl bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-800">
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+            <AnimatedBackground />
+            <div className="w-full max-w-5xl glass-effect rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-800 relative z-10">
 
                 {/* Brand Side */}
                 <div className="w-full md:w-5/12 bg-gradient-to-br from-slate-800 to-slate-950 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
