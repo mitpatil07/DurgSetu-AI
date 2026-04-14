@@ -35,6 +35,12 @@ DurgSetu AI is a comprehensive platform for monitoring structural integrity and 
    python manage.py runserver
    ```
 
+### ☁️ Render (Cloud) Deployment
+For automated deployment on Render:
+1.  **Build Command**: `pip install -r requirements.txt`
+2.  **Start Command**: `./start.sh` (This script handles migrations and admin user creation automatically).
+3.  **Environment Variables**: Ensure you set `SECRET_KEY`, `ALLOWED_HOSTS`, and `PORT` in the Render dashboard.
+
 ### Frontend Setup
 1. Navigate to the `Frontend/` directory.
 2. Install dependencies:
