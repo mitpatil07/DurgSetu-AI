@@ -16,16 +16,16 @@ import AdminSettings from './admin/AdminSettings';
 import AdminUserListing from './admin/AdminUserListing';
 import ForgotPassword from './components/Auth/ForgotPassword';
 import ResetPassword from './components/Auth/ResetPassword';
+import { useAuth } from './context/AuthContext';
 
 const HomeRoute = () => {
-  const token = localStorage.getItem("token");
-  const isAdmin = localStorage.getItem("is_staff") === "true";
+  const { token, isStaff } = useAuth();
 
   if (!token) {
     return <RoleSelect />;
   }
 
-  if (isAdmin) {
+  if (isStaff) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
@@ -34,8 +34,10 @@ const HomeRoute = () => {
 
 
 const UserOnlyRoute = ({ children }) => {
-  const isAdmin = localStorage.getItem('is_staff') === 'true';
-  if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
+  const { token, isStaff } = useAuth();
+  // Check authentication first before checking role
+  if (!token) return <Navigate to="/login" replace />;
+  if (isStaff) return <Navigate to="/admin/dashboard" replace />;
   return children;
 };
 
@@ -45,7 +47,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
 
-        {/* ✅ ROOT: Role Selector if unauth, Dashboard if Admin */}
+        {/* ROOT: Role Selector if unauth, Dashboard if Admin */}
         <Route path="/" element={<HomeRoute />} />
 
         <Route path="/login" element={<RoleSelect />} />
@@ -99,14 +101,8 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/reports"
-          element={
-            <ProtectedRoute>
-              <AdminDamageReports />
-            </ProtectedRoute>
-          }
-        />
+        {/* Canonical redirect: /reports → /admin/reports */}
+        <Route path="/reports" element={<Navigate to="/admin/reports" replace />} />
         <Route
           path="/users"
           element={
@@ -153,7 +149,7 @@ const App = () => {
         {/* Redirects */}
         <Route path="/dashboard1" element={<Navigate to="/stage1" replace />} />
         <Route path="/dashboard2" element={<Navigate to="/stage2" replace />} />
-        <Route path="/analytics" element={<AdminDamageReports />} />
+        <Route path="/analytics" element={<Navigate to="/admin/reports" replace />} />
 
       </Routes>
     </BrowserRouter>

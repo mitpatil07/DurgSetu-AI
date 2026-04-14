@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, AlertCircle, Loader } from 'lucide-react';
+import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,7 +21,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/login/', {
+            const response = await fetch(`${API_BASE}/login/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -35,12 +38,7 @@ const Login = () => {
                     return;
                 }
 
-                localStorage.setItem('auth_token', data.token);
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user_email', data.email);
-                localStorage.setItem('user_id', data.user_id);
-                localStorage.setItem('username', data.username || data.email);
-                localStorage.setItem('is_staff', 'false');
+                login(data);
                 navigate('/user/dashboard');
             } else {
                 setError(data.error || 'Login failed');

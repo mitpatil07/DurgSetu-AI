@@ -1,44 +1,24 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api/analytics';
+import { apiFetch } from '../api';
 
 export const getAnalyticsData = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/dashboard`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-    return response.data.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiFetch('/forts/analytics/');
+  if (!response.ok) throw new Error('Failed to fetch analytics data');
+  const data = await response.json();
+  return data;
 };
 
 export const getRequestsByStatus = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/requests-by-status`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-    return response.data.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiFetch('/admin-reports/?page_size=1000');
+  if (!response.ok) throw new Error('Failed to fetch reports by status');
+  const data = await response.json();
+  return data;
 };
 
 export const getCompletionStats = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/completion-stats`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-    return response.data.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiFetch('/forts/statistics/');
+  if (!response.ok) throw new Error('Failed to fetch completion stats');
+  const data = await response.json();
+  return data;
 };
 
 export default {

@@ -9,6 +9,7 @@ import {
   ArrowUpRight, ArrowDownRight, LayoutDashboard, User, FileText
 } from 'lucide-react';
 import UserReportAnalysis from './UserReportAnalysis';
+import { apiFetch } from '../api';
 
 const Stage1Dashboard = () => {
   const navigate = useNavigate();
@@ -22,15 +23,9 @@ const Stage1Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const headers = {
-        'Authorization': `Token ${token}`,
-        'Content-Type': 'application/json'
-      };
-
       const [statsRes, analyticsRes] = await Promise.all([
-        fetch('http://127.0.0.1:8000/api/forts/statistics/', { headers }),
-        fetch('http://127.0.0.1:8000/api/forts/analytics/', { headers })
+        apiFetch('/forts/statistics/'),
+        apiFetch('/forts/analytics/')
       ]);
 
       if (!statsRes.ok || !analyticsRes.ok) throw new Error('Failed to fetch data');

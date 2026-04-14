@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, User, Lock, Save, RefreshCw, Shield, ShieldCheck } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
 import { successToast, errorToast } from '../services/swal';
+import { apiFetch } from '../api';
 
 const AdminSettings = () => {
     const [profile, setProfile] = useState({ username: '', email: '', phone: '', role: '' });
@@ -14,10 +15,7 @@ const AdminSettings = () => {
 
     const fetchProfile = async () => {
         try {
-            const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://127.0.0.1:8000/api/profile/', {
-                headers: { 'Authorization': `Token ${token}` }
-            });
+            const res = await apiFetch('/profile/');
             if (res.ok) {
                 const data = await res.json();
                 setProfile(data);
@@ -33,13 +31,8 @@ const AdminSettings = () => {
         e.preventDefault();
         setSaving(true);
         try {
-            const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://127.0.0.1:8000/api/profile/', {
+            const res = await apiFetch('/profile/', {
                 method: 'PATCH',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify({ email: profile.email, phone: profile.phone })
             });
             if (res.ok) {
@@ -62,13 +55,8 @@ const AdminSettings = () => {
         }
         setSaving(true);
         try {
-            const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://127.0.0.1:8000/api/change-password/', {
+            const res = await apiFetch('/change-password/', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify({
                     old_password: passwords.old_password,
                     new_password: passwords.new_password

@@ -6,6 +6,7 @@ import {
     MapPin, Calendar, ImageIcon, ChevronRight, Plus, Shield,
     TrendingUp, Star, Sparkles
 } from 'lucide-react';
+import { API_BASE, apiFetch } from '../api';
 
 const STATUS = {
     'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400', label: 'Pending Review' },
@@ -14,7 +15,7 @@ const STATUS = {
     'Dismissed': { bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', dot: 'bg-slate-400', label: 'Dismissed' },
 };
 
-const formatImageUrl = (url) => typeof url === 'string' && url.startsWith('http') ? url : `http://127.0.0.1:8000${url}`;
+const formatImageUrl = (url) => typeof url === 'string' && url.startsWith('http') ? url : `${API_BASE.replace('/api', '')}${url}`;
 
 const SEVERITY_COLOR = {
     'Critical': 'bg-red-100 text-red-700 border-red-200',
@@ -47,9 +48,7 @@ export default function UserDashboard() {
         try {
             const token = localStorage.getItem('auth_token');
             if (!token) { navigate('/login'); return; }
-            const res = await fetch('http://127.0.0.1:8000/api/user-reports/', {
-                headers: { Authorization: `Token ${token}` }
-            });
+            const res = await apiFetch('/user-reports/');
             if (res.ok) {
                 const d = await res.json();
                 setReports(Array.isArray(d) ? d : (d.results || []));

@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Lock, AlertCircle, Loader, User, Shield } from 'lucide-react';
+import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
     const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,7 +27,7 @@ const Register = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/register/', {
+            const response = await fetch(`${API_BASE}/register/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -37,11 +40,7 @@ const Register = () => {
             const data = await response.json();
 
             if (response.ok) {
-                localStorage.setItem('auth_token', data.token);
-                localStorage.setItem('user_email', data.email);
-                localStorage.setItem('user_id', data.user_id);
-                localStorage.setItem('username', data.username || data.email);
-                localStorage.setItem('is_staff', data.is_staff || false);
+                login(data);
                 navigate('/user/dashboard');
             } else {
                 if (typeof data === 'object' && data !== null) {

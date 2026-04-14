@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Shield, Clock, MapPin, Eye, X, Image as ImageIcon, AlertTriangle, CheckCircle } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
+import { API_BASE, apiFetch } from '../api';
 
 const AdminProfile = () => {
     const navigate = useNavigate();
@@ -26,10 +27,10 @@ const AdminProfile = () => {
             // Fetch all analyses (admin global view — no mine filter)
             // Handle paginated DRF responses by looping through all pages
             let allResults = [];
-            let url = 'http://127.0.0.1:8000/api/structural-analyses/?page_size=100';
+            let nextUrl = `${API_BASE}/structural-analyses/?page_size=100`;
 
-            while (url) {
-                const response = await fetch(url, {
+            while (nextUrl) {
+                const response = await fetch(nextUrl, {
                     headers: {
                         'Authorization': `Token ${token}`,
                         'Content-Type': 'application/json'
@@ -41,13 +42,11 @@ const AdminProfile = () => {
                 const data = await response.json();
 
                 if (Array.isArray(data)) {
-                    // Non-paginated response
                     allResults = data;
-                    url = null;
+                    nextUrl = null;
                 } else {
-                    // Paginated DRF response: { count, next, previous, results }
                     allResults = [...allResults, ...(data.results || [])];
-                    url = data.next || null; // follow next page until null
+                    nextUrl = data.next || null;
                 }
             }
 

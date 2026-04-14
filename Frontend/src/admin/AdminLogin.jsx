@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, AlertCircle, Loader, UserPlus, User } from 'lucide-react';
+import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLogin = () => {
     const [mode, setMode] = useState('login');
@@ -8,6 +10,7 @@ const AdminLogin = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,8 +24,8 @@ const AdminLogin = () => {
         setLoading(true);
         try {
             const url = mode === 'login'
-                ? 'http://127.0.0.1:8000/api/login/'
-                : 'http://127.0.0.1:8000/api/register/';
+                ? `${API_BASE}/login/`
+                : `${API_BASE}/register/`;
 
             const body = mode === 'login'
                 ? { username: formData.username, password: formData.password, role: 'admin' }
@@ -41,12 +44,7 @@ const AdminLogin = () => {
                     setError('Access denied. This login is for admins only.');
                     return;
                 }
-                localStorage.setItem('auth_token', data.token);
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user_email', data.email);
-                localStorage.setItem('user_id', data.user_id);
-                localStorage.setItem('username', data.username || data.email);
-                localStorage.setItem('is_staff', data.is_staff);
+                login(data);
                 navigate('/admin/dashboard');
             } else {
                 const firstErr = typeof data === 'object' ? Object.values(data)[0] : null;

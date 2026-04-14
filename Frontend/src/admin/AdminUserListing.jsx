@@ -7,6 +7,7 @@ import {
     FileText, BarChart2, Bell, Settings, LogOut, Menu
 } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
+import { apiFetch } from '../api';
 
 /* ─── Design Tokens ───────────────────────────────── */
 const FONT = "'DM Sans', 'Inter', system-ui, sans-serif";
@@ -88,10 +89,7 @@ export default function AdminUserListing() {
     const fetchUsers = React.useCallback(async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('auth_token');
-            const response = await fetch('http://127.0.0.1:8000/api/profile/all/', {
-                headers: { 'Authorization': `Token ${token}` }
-            });
+            const response = await apiFetch('/profile/all/');
             if (response.ok) {
                 const data = await response.json();
                 setUsers(data);

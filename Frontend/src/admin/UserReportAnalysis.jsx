@@ -4,6 +4,7 @@ import {
     Activity, Layers, MapPin, ArrowUpRight,
     PieChart, Shield, Users
 } from 'lucide-react';
+import { apiFetch } from '../api';
 
 const STATUS = {
     'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
@@ -79,14 +80,9 @@ export default function UserReportAnalysis({ initialReports = null, embedded = f
             const token = localStorage.getItem('auth_token');
             if (!token) return;
 
-            // Fetch reports and users concurrently
             const [reportsRes, usersRes] = await Promise.all([
-                fetch('http://127.0.0.1:8000/api/admin-reports/', {
-                    headers: { Authorization: `Token ${token}` },
-                }),
-                fetch('http://127.0.0.1:8000/api/profile/all/', {
-                    headers: { Authorization: `Token ${token}` },
-                })
+                apiFetch('/admin-reports/'),
+                apiFetch('/profile/all/')
             ]);
 
             if (reportsRes.ok) {

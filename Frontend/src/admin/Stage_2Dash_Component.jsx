@@ -3,6 +3,7 @@ import { TrendingUp, Activity, Shield, Zap, RefreshCw, Eye, Upload, Camera, Chec
 
 import { useNavigate } from 'react-router-dom';
 import { errorToast } from '../services/swal';
+import { apiFetch } from '../api';
 
 const Stage2Dashboard = ({ setActiveStage }) => {
   const navigate = useNavigate();
@@ -18,8 +19,6 @@ const Stage2Dashboard = ({ setActiveStage }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
 
-  const API_BASE = 'http://127.0.0.1:8000/api';
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -31,16 +30,10 @@ const Stage2Dashboard = ({ setActiveStage }) => {
     setError(null);
 
     try {
-      const token = localStorage.getItem('auth_token');
-      const headers = {
-        'Authorization': `Token ${token}`,
-        'Content-Type': 'application/json'
-      };
-
       const [fortsResponse, analysesResponse, statsResponse] = await Promise.all([
-        fetch(`${API_BASE}/forts/`, { headers }),
-        fetch(`${API_BASE}/structural-analyses/`, { headers }),
-        fetch(`${API_BASE}/forts/statistics/`, { headers })
+        apiFetch('/forts/'),
+        apiFetch('/structural-analyses/'),
+        apiFetch('/forts/statistics/')
       ]);
 
       if (!fortsResponse.ok || !analysesResponse.ok || !statsResponse.ok) {
@@ -123,12 +116,8 @@ const Stage2Dashboard = ({ setActiveStage }) => {
     }
 
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${API_BASE}/structural-analyses/analyze/`, {
+      const response = await apiFetch('/structural-analyses/analyze/', {
         method: 'POST',
-        headers: {
-          'Authorization': `Token ${token}`
-        },
         body: formData,
       });
 
@@ -553,9 +542,8 @@ const FortDetailModal = ({ fort, onClose, onRefresh }) => {
                     <button
                       onClick={async () => {
                         try {
-                          await fetch(`http://localhost:8000/api/structural-analyses/${fort.detailedAnalysis.id}/verify/`, {
+                          await apiFetch(`/structural-analyses/${fort.detailedAnalysis.id}/verify/`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${localStorage.getItem('auth_token')}` },
                             body: JSON.stringify({ is_verified: true, is_false_positive: false })
                           });
                           setVerificationMessage("Verified!");
@@ -569,9 +557,8 @@ const FortDetailModal = ({ fort, onClose, onRefresh }) => {
                     <button
                       onClick={async () => {
                         try {
-                          await fetch(`http://localhost:8000/api/structural-analyses/${fort.detailedAnalysis.id}/verify/`, {
+                          await apiFetch(`/structural-analyses/${fort.detailedAnalysis.id}/verify/`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${localStorage.getItem('auth_token')}` },
                             body: JSON.stringify({ is_verified: true, is_false_positive: true })
                           });
                           setVerificationMessage("Rejected!");

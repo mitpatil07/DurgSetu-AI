@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, AlertCircle, Loader, CheckCircle, ArrowLeft, KeyRound } from 'lucide-react';
+import { API_BASE } from '../api';
 
 const ForgotPassword = () => {
     const [step, setStep] = useState(1); // 1: email, 2: otp, 3: new password
@@ -19,7 +20,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/forgot-password/', {
+            const response = await fetch(`${API_BASE}/forgot-password/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email }),
@@ -45,7 +46,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/verify-otp/', {
+            const response = await fetch(`${API_BASE}/verify-otp/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp_code: otp, otp_type: 'reset' }),
@@ -82,7 +83,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/reset-password/', {
+            const response = await fetch(`${API_BASE}/reset-password/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp_code: otp, new_password: newPassword }),

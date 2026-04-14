@@ -8,5 +8,8 @@ class HomeConfig(AppConfig):
     def ready(self):
         # Load the ML model once at startup so it is reused across requests
         # instead of being re-instantiated on every analysis call.
-        from .structural_detector import StructuralChangeDetector  # noqa: F401
-        from . import detector_singleton  # noqa: F401
+        # detector_singleton handles ImportError gracefully when ML deps are absent.
+        try:
+            from . import detector_singleton  # noqa: F401
+        except Exception:
+            pass

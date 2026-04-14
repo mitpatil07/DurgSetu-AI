@@ -11,9 +11,10 @@ import {
 import UserReportAnalysis from './UserReportAnalysis';
 import AdminNavbar from './AdminNavbar';
 import { successToast, errorToast } from '../services/swal';
+import { API_BASE, apiFetch } from '../api';
 
 const FONT = "'DM Sans', 'Inter', system-ui, sans-serif";
-const formatImageUrl = (url) => typeof url === 'string' && url.startsWith('http') ? url : `http://127.0.0.1:8000${url}`;
+const formatImageUrl = (url) => typeof url === 'string' && url.startsWith('http') ? url : `${API_BASE.replace('/api', '')}${url}`;
 
 const STATUS = {
     'Pending': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
@@ -87,9 +88,7 @@ export default function AdminDamageReports() {
         try {
             const token = localStorage.getItem('auth_token');
             if (!token || localStorage.getItem('is_staff') !== 'true') { navigate('/login'); return; }
-            const res = await fetch('http://127.0.0.1:8000/api/admin-reports/', {
-                headers: { Authorization: `Token ${token}` },
-            });
+            const res = await apiFetch('/admin-reports/');
             if (res.ok) { const d = await res.json(); setReports(Array.isArray(d) ? d : (d.results || [])); }
             else setError('Could not load reports.');
         } catch { setError('Network error.'); } finally { setLoading(false); }
@@ -106,9 +105,8 @@ export default function AdminDamageReports() {
             fd.append('status', form.status);
             if (form.admin_notes) fd.append('admin_notes', form.admin_notes);
             if (form.repair_image) fd.append('repair_image', form.repair_image);
-            const res = await fetch(`http://127.0.0.1:8000/api/admin-reports/${sel.id}/`, {
+            const res = await apiFetch(`/admin-reports/${sel.id}/`, {
                 method: 'PATCH',
-                headers: { Authorization: `Token ${localStorage.getItem('auth_token')}` },
                 body: fd,
             });
             if (res.ok) { setSel(null); load(); successToast('Report Updated', 'Changes saved successfully.'); }

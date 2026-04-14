@@ -6,6 +6,7 @@ import {
     Mail, ArrowLeft
 } from 'lucide-react';
 import { errorToast, successToast } from '../services/swal';
+import { apiFetch } from '../api';
 
 const DAMAGE_TYPES = [
     'Structural Crack', 'Wall Damage', 'Foundation Issue',
@@ -50,9 +51,7 @@ export default function UserReport() {
             try {
                 const token = localStorage.getItem('auth_token');
                 if (!token) return;
-                const res = await fetch('http://127.0.0.1:8000/api/profile/', {
-                    headers: { Authorization: `Token ${token}` }
-                });
+                const res = await apiFetch('/profile/');
                 if (res.ok) {
                     const data = await res.json();
                     setFormData(prev => ({
@@ -92,10 +91,8 @@ export default function UserReport() {
             Object.entries(formData).forEach(([k, v]) => fd.append(k, v));
             images.forEach((img, i) => fd.append(`image_${i}`, img.file));
 
-            const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://127.0.0.1:8000/api/user-reports/', {
+            const res = await apiFetch('/user-reports/', {
                 method: 'POST',
-                headers: { Authorization: `Token ${token}` },
                 body: fd,
             });
 
