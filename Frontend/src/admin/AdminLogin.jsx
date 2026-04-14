@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Mail, Lock, AlertCircle, Loader, UserPlus, User } from 'lucide-react';
+import { Shield, Mail, Lock, AlertCircle, Loader, User } from 'lucide-react';
 import { API_BASE } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 const AdminLogin = () => {
-    const [mode, setMode] = useState('login');
-    const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '', adminSecret: '' });
+    const [formData, setFormData] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -20,35 +19,23 @@ const AdminLogin = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
         setLoading(true);
         try {
-            const url = mode === 'login'
-                ? `${API_BASE}/login/`
-                : `${API_BASE}/register/`;
-
-            const body = mode === 'login'
-                ? { username: formData.username, password: formData.password, role: 'admin' }
-                : { username: formData.username, email: formData.email, password: formData.password, admin_secret: formData.adminSecret, role: 'admin' };
-
-            const response = await fetch(url, {
+            const response = await fetch(`${API_BASE}/login/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
+                body: JSON.stringify({ ...formData, role: 'admin' }),
             });
             const data = await response.json();
-
             if (response.ok) {
-                // Check if user is actually an admin
                 if (!data.is_staff) {
-                    setError('Access denied. This login is for admins only.');
+                    setError('Access denied. Admins only.');
                     return;
                 }
                 login(data);
                 navigate('/admin/dashboard');
             } else {
-                const firstErr = typeof data === 'object' ? Object.values(data)[0] : null;
-                setError(Array.isArray(firstErr) ? firstErr[0] : (data.error || 'Something went wrong'));
+                setError(data.error || 'Login failed');
             }
         } catch {
             setError('Network error. Please try again.');
@@ -58,128 +45,72 @@ const AdminLogin = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-8">
-            <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-100">
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-5xl bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-800">
 
                 {/* Brand Side */}
-                <div className="md:w-5/12 bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 p-10 text-white flex flex-col justify-between relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
-                    <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-80 h-80 rounded-full bg-orange-400/20 blur-3xl" />
-
-                    <div className="relative z-10 flex items-center gap-3 mb-10">
-                        <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm border border-white/20 shadow-lg">
-                            <Shield className="w-8 h-8 text-white" />
-                        </div>
-                        <h1 className="text-3xl font-extrabold tracking-tight">DurgSetu AI</h1>
+                <div className="w-full md:w-5/12 bg-gradient-to-br from-slate-800 to-slate-950 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+                    <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-orange-500/10 blur-2xl"></div>
+                    <div className="relative z-10 flex items-center gap-3 mb-4 sm:mb-10">
+                        <Shield className="w-6 h-6 sm:w-10 sm:h-10 text-orange-500" />
+                        <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">DurgSetu <span className="text-orange-500">Admin</span></h1>
                     </div>
-
-                    <div className="relative z-10 mb-10 md:mb-0">
-                        <h2 className="text-4xl font-bold leading-tight mb-4">
-                            Manage & Protect <span className="text-orange-200">Heritage.</span>
-                        </h2>
-                        <p className="text-orange-100 text-lg leading-relaxed mb-8">
-                            Access the admin dashboard to review damage reports, run AI analysis, and update repair records.
-                        </p>
-                        <div className="bg-black/10 backdrop-blur-md rounded-2xl p-5 border border-white/10">
-                            <p className="text-sm font-medium text-orange-50 italic">
-                                "Forts are the foundation of the kingdom" <br />- Chhatrapati Shivaji Maharaj
-                            </p>
+                    <div className="relative z-10 hidden sm:block">
+                        <h2 className="text-2xl font-bold leading-tight mb-4">Command Center</h2>
+                        <p className="text-slate-400 text-sm leading-relaxed mb-6">Internal access for structural analysis and preservation management.</p>
+                        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                            <p className="text-xs text-slate-400">Restricted Area: Authorized Personnel Only</p>
                         </div>
                     </div>
-
-                    <div className="relative z-10 text-sm font-medium text-orange-200/80 mt-8 md:mt-0">
+                    <div className="relative z-10 text-[10px] sm:text-sm font-medium text-slate-500">
                         © 2026 Admin Portal
                     </div>
                 </div>
 
                 {/* Form Side */}
-                <div className="md:w-7/12 p-10 sm:p-14 flex flex-col justify-center bg-white">
+                <div className="md:w-7/12 p-8 sm:p-14 flex flex-col justify-center bg-white">
                     <div className="max-w-md w-full mx-auto">
-
-                        {/* Toggle Tabs */}
-                        <div className="flex bg-slate-100 rounded-2xl p-1 mb-10">
-                            <button
-                                onClick={() => { setMode('login'); setError(''); }}
-                                className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${mode === 'login'
-                                    ? 'bg-white shadow text-slate-900'
-                                    : 'text-slate-500 hover:text-slate-700'
-                                    }`}
-                            >
-                                Admin Login
-                            </button>
-                        </div>
-
-                        <div className="mb-8">
-                            <h2 className="text-3xl font-bold text-slate-900 mb-2">
-                                {mode === 'login' ? 'Welcome Back, Admin' : 'Create Admin Account'}
-                            </h2>
-                            <p className="text-slate-500 font-medium">
-                                {mode === 'login'
-                                    ? 'Enter your admin credentials to access the dashboard.'
-                                    : 'Register a new admin account. Staff access is required.'}
-                            </p>
+                        <div className="mb-6 sm:mb-10 text-center md:text-left">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">Admin Portal</h2>
+                            <p className="text-slate-500 text-sm">Secure Authentication Required</p>
                         </div>
 
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl flex items-center gap-3 text-sm border border-red-100">
-                                <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500" />
+                                <AlertCircle className="w-5 h-5 text-red-500" />
                                 <p className="font-medium">{error}</p>
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Username</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Admin Username</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-orange-500 transition-colors">
-                                        <User className="h-5 w-5" />
-                                    </div>
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-orange-500" />
                                     <input type="text" name="username" value={formData.username} onChange={handleChange} required
-                                        className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-slate-400"
-                                        placeholder="admin_username" />
+                                        className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-orange-500 transition-all outline-none"
+                                        placeholder="Username" />
                                 </div>
                             </div>
-
-                            {mode === 'register' && (
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Email</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-orange-500 transition-colors">
-                                            <Mail className="h-5 w-5" />
-                                        </div>
-                                        <input type="email" name="email" value={formData.email} onChange={handleChange} required
-                                            className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-slate-400"
-                                            placeholder="admin@durgsetu.ai" />
-                                    </div>
-                                </div>
-                            )}
-
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Password</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Password</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-orange-500 transition-colors">
-                                        <Lock className="h-5 w-5" />
-                                    </div>
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-orange-500" />
                                     <input type="password" name="password" value={formData.password} onChange={handleChange} required
-                                        className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-slate-400"
+                                        className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-orange-500 transition-all outline-none"
                                         placeholder="••••••••" />
                                 </div>
                             </div>
                             <button type="submit" disabled={loading}
-                                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl shadow-[0_8px_20px_-6px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(249,115,22,0.6)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:hover:translate-y-0 mt-4"
+                                className="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer mt-2"
                             >
-                                {loading
-                                    ? <Loader className="w-5 h-5 animate-spin" />
-                                    : mode === 'login'
-                                        ? <><Shield className="w-5 h-5" /> Access Admin Dashboard</>
-                                        : <><UserPlus className="w-5 h-5" /> Create Admin Account</>
-                                }
+                                {loading ? <Loader className="animate-spin" /> : <span>Authorize Access</span>}
                             </button>
                         </form>
 
                         <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-                            <button onClick={() => navigate('/login')} className="text-slate-400 hover:text-slate-600 transition-colors text-sm">
-                                ← Back to Role Selection
+                            <button onClick={() => navigate('/login')} className="text-slate-400 hover:text-slate-600 transition-colors text-xs font-bold uppercase tracking-widest">
+                                ← Return to Role Selection
                             </button>
                         </div>
                     </div>

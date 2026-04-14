@@ -723,14 +723,43 @@ class AdminDamageReportViewSet(viewsets.ModelViewSet):
 class AdminProfileViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
 
+    def list(self, request):
+        """Get current user profile data"""
+        u = request.user
+        display_name = u.username.split('_', 1)[-1] if '_' in u.username else u.username
+        
+        # Determine internal DB role namespace
+        role = 'admin' if u.is_staff else 'user'
+        
+        data = {
+            'username': display_name,
+            'email': u.email,
+            'role': role,
+            'phone': '' # Could be fetched from a UserProfile or AdminUser model if needed
+        }
+        return Response(data)
+
+    @action(detail=False, methods=['patch'])
+    def update_profile(self, request):
+        """Update current user profile data"""
+        u = request.user
+        email = request.data.get('email')
+        phone = request.data.get('phone')
+        
+        if email:
+            u.email = email
+            u.save()
+            
+        # If AdminUser model exists and has a phone field, we could save it there.
+        # For now, we return success if email was updated.
+        return Response({'status': 'updated'})
+
     @action(detail=False, methods=['get'])
     def all(self, request):
         users = User.objects.all().order_by('-date_joined')
         data = []
         for u in users:
-            # Check the role based on is_staff or the internal prefix logic
             role = 'ADMIN' if u.is_staff else 'CITIZEN'
-            # Remove the prefix from the username for frontend display
             display_name = u.username.split('_', 1)[-1] if '_' in u.username else u.username
             
             data.append({
@@ -739,6 +768,6 @@ class AdminProfileViewSet(viewsets.ViewSet):
                 'email': u.email,
                 'role': role,
                 'date_joined': u.date_joined,
-                'phone': '' # Could be fetched from profile if needed
+                'phone': ''
             })
         return Response(data)

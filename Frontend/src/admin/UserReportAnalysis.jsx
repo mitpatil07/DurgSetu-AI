@@ -53,14 +53,14 @@ function HorizBar({ label, value, max, colorClass, badgeClass }) {
 
 function StatCard({ icon: Icon, label, value, sub, accent }) {
     return (
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-start gap-4">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`}>
-                <Icon className="w-5 h-5" />
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 flex flex-col sm:flex-row items-start gap-3 sm:gap-4 overflow-hidden">
+            <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`}>
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-                <p className="text-2xl font-extrabold text-slate-900 leading-none">{value}</p>
-                <p className="text-xs font-semibold text-slate-500 mt-1">{label}</p>
-                {sub && <p className="text-[11px] text-slate-400 mt-0.5">{sub}</p>}
+            <div className="min-w-0 w-full">
+                <p className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-none">{value}</p>
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 mt-1 sm:mt-1">{label}</p>
+                {sub && <p className="text-[9px] sm:text-[11px] text-slate-400 mt-0.5 hidden sm:block truncate">{sub}</p>}
             </div>
         </div>
     );
@@ -175,7 +175,7 @@ export default function UserReportAnalysis({ initialReports = null, embedded = f
             )}
 
             {/* ── KPI row ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <StatCard icon={FileText} label="Total Reports" value={total} sub="All submissions" accent="bg-slate-100 text-slate-500" />
                 {users.length > 0 ? (
                     <StatCard icon={Users} label="Total Users" value={users.length} sub="Registered platform users" accent="bg-purple-100 text-purple-600" />

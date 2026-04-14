@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Shield, TrendingUp, Eye, AlertCircle, ClipboardList } from 'lucide-react';
+import { Activity, Shield, TrendingUp, Eye, AlertCircle, ClipboardList, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AdminNavbar from '../admin/AdminNavbar';
 
@@ -136,32 +136,32 @@ const RealtimeFortDashboard = () => {
           </div>
 
           {/* Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
             {[
               { label: 'Temperature', value: `${fortData.temperature}°C`, sub: `Feels like ${fortData.feelsLike}°C` },
-              { label: 'Humidity', value: `${fortData.humidity}%`, sub: 'Current moisture level' },
-              { label: 'Wind Speed', value: fortData.windSpeed, sub: 'Kilometers per hour' },
+              { label: 'Humidity', value: `${fortData.humidity}%`, sub: 'Current moisture' },
+              { label: 'Wind Speed', value: fortData.windSpeed, sub: 'Km per hour' },
             ].map(({ label, value, sub }) => (
-              <div key={label} className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-wider">{label}</p>
-                  <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-orange-100">
-                    <Activity className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
+              <div key={label} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group overflow-hidden">
+                <div className="flex items-center justify-between mb-3 md:mb-4">
+                  <p className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-wider mr-1.5">{label}</p>
+                  <div className="w-8 h-8 md:w-12 md:h-12 bg-orange-50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-orange-100 shrink-0">
+                    <Activity className="w-4 h-4 md:w-6 md:h-6 text-orange-500" />
                   </div>
                 </div>
-                <p className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">{value}</p>
-                <p className="text-xs md:text-sm font-medium text-slate-400">{sub}</p>
+                <p className="text-xl md:text-4xl font-bold text-slate-800 mb-1">{value}</p>
+                <p className="text-[9px] md:text-sm font-medium text-slate-400">{sub}</p>
               </div>
             ))}
-            <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-wider">Visibility</p>
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-orange-100">
-                  <Eye className="w-5 h-5 md:w-6 md:h-6 text-orange-500" />
+            <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md group overflow-hidden">
+              <div className="flex items-center justify-between mb-3 md:mb-4">
+                <p className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-wider mr-1.5">Visibility</p>
+                <div className="w-8 h-8 md:w-12 md:h-12 bg-orange-50 rounded-xl flex items-center justify-center transition-colors group-hover:bg-orange-100 shrink-0">
+                  <Eye className="w-4 h-4 md:w-6 md:h-6 text-orange-500" />
                 </div>
               </div>
-              <p className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">{fortData.visibility}</p>
-              <p className="text-xs md:text-sm font-medium text-slate-400">Kilometer range</p>
+              <p className="text-xl md:text-4xl font-bold text-slate-800 mb-1">{fortData.visibility}</p>
+              <p className="text-[9px] md:text-sm font-medium text-slate-400">KM range</p>
             </div>
           </div>
 
@@ -171,7 +171,7 @@ const RealtimeFortDashboard = () => {
               <div className="p-2 bg-orange-100 rounded-lg text-orange-600"><Activity className="w-5 h-5" /></div>
               Real-Time Atmospheric Data
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               {[
                 { label: 'Condition', value: fortData.conditionDescription, cls: 'capitalize' },
                 { label: 'Pressure', value: `${fortData.pressure} hPa` },
@@ -180,33 +180,32 @@ const RealtimeFortDashboard = () => {
                 { label: 'Sunset', value: fortData.sunset },
                 { label: 'Variance', value: `${fortData.tempMin}° / ${fortData.tempMax}°`, cls: 'text-orange-600' },
               ].map(({ label, value, cls }) => (
-                <div key={label} className="flex items-center justify-between py-4 px-5 bg-slate-50 rounded-xl hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
-                  <span className="text-sm font-bold text-slate-500">{label}</span>
-                  <span className={`font-extrabold text-slate-800 tracking-tight ${cls || ''}`}>{value}</span>
+                <div key={label} className="flex flex-col sm:flex-row sm:items-center justify-between py-2 sm:py-4 px-3 sm:px-5 bg-slate-50 rounded-xl hover:bg-orange-50/50 transition-colors border border-transparent hover:border-orange-100">
+                  <span className="text-[9px] sm:text-sm font-bold text-slate-500 uppercase tracking-tight mb-0.5 sm:mb-0 whitespace-nowrap">{label}</span>
+                  <span className={`font-extrabold text-slate-800 tracking-tight text-[11px] sm:text-base ${cls || ''} whitespace-nowrap`}>{value}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Action Cards: Stage 1 | Stage 2 | User Reports */}
-          <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
 
             {/* Stage 1 */}
             <button
               onClick={() => navigate('/stage1')}
-              className="group relative bg-slate-900 border border-slate-800 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 text-left w-full cursor-pointer"
+              className="group relative bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-orange-500/20 text-left w-full cursor-pointer min-h-[160px] md:min-h-[180px] flex flex-col justify-between"
             >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-slate-800 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-colors group-hover:bg-slate-700"></div>
-              <div className="relative z-10 flex flex-col h-full justify-between gap-12">
-                <div className="bg-slate-800 w-fit p-4 rounded-2xl border border-slate-700 shadow-inner group-hover:border-slate-600 transition-colors">
-                  <TrendingUp className="w-8 h-8 text-slate-300 group-hover:text-white" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-slate-800 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none transition-colors group-hover:bg-slate-700"></div>
+              <div className="relative z-10">
+                <div className="bg-slate-800 w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl border border-slate-700 shadow-inner group-hover:border-slate-600 transition-colors flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-slate-300 group-hover:text-white" />
                 </div>
-                <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2">AI Analytics Center</h3>
-                  <p className="text-slate-400 font-medium mb-4">View historical trends, risk leaderboards, and system-wide predictive analytics.</p>
-                  <div className="inline-flex items-center gap-2 text-sm font-bold text-orange-400 tracking-wide">
-                    ACCESS STAGE 1 <Activity className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </div>
+              </div>
+              <div className="relative z-10">
+                <h3 className="text-lg md:text-xl font-black text-white leading-tight uppercase tracking-tight">AI Analytics</h3>
+                <div className="inline-flex items-center gap-2 text-[10px] md:text-[11px] font-black text-orange-400 tracking-widest uppercase mt-1.5">
+                  STAGE 1 <Activity className="w-3 md:w-3.5 h-3 md:h-3.5" />
                 </div>
               </div>
             </button>
@@ -214,19 +213,18 @@ const RealtimeFortDashboard = () => {
             {/* Stage 2 */}
             <button
               onClick={() => navigate('/stage2')}
-              className="group relative bg-gradient-to-br from-orange-500 to-orange-600 border border-orange-500 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/40 text-left w-full cursor-pointer"
+              className="group relative bg-gradient-to-br from-orange-500 to-orange-600 border border-orange-500 rounded-3xl p-6 md:p-8 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-orange-500/40 text-left w-full cursor-pointer min-h-[160px] md:min-h-[180px] flex flex-col justify-between"
             >
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-colors group-hover:bg-white/20"></div>
-              <div className="relative z-10 flex flex-col h-full justify-between gap-12">
-                <div className="bg-white/20 w-fit p-4 rounded-2xl border border-white/20 shadow-inner backdrop-blur-md">
-                  <Shield className="w-8 h-8 text-white" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none transition-colors group-hover:bg-white/20"></div>
+              <div className="relative z-10">
+                <div className="bg-white/20 w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl border border-white/20 shadow-inner backdrop-blur-md flex items-center justify-center">
+                  <Shield className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2">Live Verification</h3>
-                  <p className="text-orange-100 font-medium mb-4">Upload new scans, execute deep structural differencing, and dispatch high-alert emails.</p>
-                  <div className="inline-flex items-center gap-2 text-sm font-bold text-white tracking-wide">
-                    LAUNCH STAGE 2 <Shield className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </div>
+              </div>
+              <div className="relative z-10">
+                <h3 className="text-lg md:text-xl font-black text-white leading-tight uppercase tracking-tight">Verification</h3>
+                <div className="inline-flex items-center gap-2 text-[10px] md:text-[11px] font-black text-white/90 tracking-widest uppercase mt-1.5">
+                  STAGE 2 <Shield className="w-3 md:w-3.5 h-3 md:h-3.5" />
                 </div>
               </div>
             </button>
@@ -234,21 +232,21 @@ const RealtimeFortDashboard = () => {
             {/* User Reports */}
             <button
               onClick={() => navigate('/admin/reports')}
-              className="group relative bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 rounded-3xl p-8 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-orange-500/20 text-left w-full cursor-pointer"
+              className="group relative bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 rounded-3xl p-6 md:p-8 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-orange-500/20 text-left w-full cursor-pointer col-span-2 md:col-span-2 lg:col-span-1 min-h-[100px] flex items-center justify-between"
             >
               <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-colors group-hover:bg-orange-500/20"></div>
-              <div className="relative z-10 flex flex-col h-full justify-between gap-12">
-                <div className="bg-orange-500/20 w-fit p-4 rounded-2xl border border-orange-500/30 shadow-inner group-hover:border-orange-400/50 transition-colors">
-                  <ClipboardList className="w-8 h-8 text-orange-400 group-hover:text-orange-300" />
+              <div className="relative z-10 flex items-center gap-6">
+                <div className="bg-orange-500/20 w-12 h-12 md:w-14 md:h-14 flex-shrink-0 rounded-xl md:rounded-2xl border border-orange-500/30 shadow-inner group-hover:border-orange-400/50 transition-colors flex items-center justify-center">
+                  <ClipboardList className="w-6 h-6 md:w-8 md:h-8 text-orange-400 group-hover:text-orange-300" />
                 </div>
-                <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2">User Reports</h3>
-                  <p className="text-slate-400 font-medium mb-4">Review damage reports from users, update repair status, and upload repair documentation.</p>
-                  <div className="inline-flex items-center gap-2 text-sm font-bold text-orange-400 tracking-wide">
-                    VIEW REPORTS <ClipboardList className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-xl font-black text-white leading-tight uppercase tracking-tight">User Reports</h3>
+                  <div className="flex items-center gap-2 text-[10px] md:text-[11px] font-black text-orange-400 tracking-widest uppercase mt-1">
+                    CENTRAL LOG <ClipboardList className="w-3 md:w-3.5 h-3 md:h-3.5" />
                   </div>
                 </div>
               </div>
+              <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white transition-all transform group-hover:translate-x-1 relative z-10" />
             </button>
           </div>
 

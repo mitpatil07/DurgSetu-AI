@@ -19,25 +19,18 @@ const Login = () => {
         e.preventDefault();
         setError('');
         setLoading(true);
-
         try {
             const response = await fetch(`${API_BASE}/login/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
-
             const data = await response.json();
-
             if (response.ok) {
-                // Block admin accounts from using the user login portal
                 if (data.is_staff) {
                     setError('User not found');
                     return;
                 }
-
                 login(data);
                 navigate('/user/dashboard');
             } else {
@@ -51,116 +44,73 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-8">
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-100">
 
-                {/* Brand Side (Left on Desktop, Top on Mobile) */}
-                <div className="md:w-5/12 bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 p-10 text-white flex flex-col justify-between relative overflow-hidden">
-                    {/* Abstract overlapping circles for depth */}
+                {/* Brand Side - Compact on Mobile */}
+                <div className="w-full md:w-5/12 bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-2xl"></div>
-                    <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-80 h-80 rounded-full bg-orange-400/20 blur-3xl"></div>
-
-                    <div className="relative z-10 flex items-center gap-3 mb-10">
-                        <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm border border-white/20 shadow-lg">
-                            <Shield className="w-8 h-8 text-white" />
-                        </div>
-                        <h1 className="text-3xl font-extrabold tracking-tight">DurgSetu AI</h1>
+                    <div className="relative z-10 flex items-center gap-3 mb-4 sm:mb-10">
+                        <Shield className="w-6 h-6 sm:w-10 sm:h-10 text-white" />
+                        <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">DurgSetu AI</h1>
                     </div>
-
-                    <div className="relative z-10 mb-10 md:mb-0">
-                        <h2 className="text-4xl font-bold leading-tight mb-4">
-                            Preserving Heritage with <span className="text-orange-200">Intelligence.</span>
+                    <div className="relative z-10 hidden sm:block">
+                        <h2 className="text-3xl font-bold leading-tight mb-4 text-orange-50">
+                            Preserving Heritage with Intelligence.
                         </h2>
-                        <p className="text-orange-100 text-lg leading-relaxed mb-8">
-                            Sign in to access damage reporting, real-time structural analytics, and safeguard historical monuments.
-                        </p>
-
-                        <div className="bg-black/10 backdrop-blur-md rounded-2xl p-5 border border-white/10">
-                            <p className="text-sm font-medium text-orange-50 italic">
-                                "Forts are the foundation of the kingdom" <br />- Chhatrapati Shivaji Maharaj
-                            </p>
+                        <div className="bg-black/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+                            <p className="text-sm font-medium italic">"Forts are the foundation of the kingdom" - Shivaji Maharaj</p>
                         </div>
                     </div>
-
-                    <div className="relative z-10 text-sm font-medium text-orange-200/80 mt-8 md:mt-0">
+                    <div className="relative z-10 text-[10px] sm:text-sm font-medium text-orange-200/80">
                         © 2026 User Portal
                     </div>
                 </div>
 
-                {/* Form Side (Right) */}
-                <div className="md:w-7/12 p-10 sm:p-14 flex flex-col justify-center bg-white">
+                {/* Form Side */}
+                <div className="md:w-7/12 p-8 sm:p-14 flex flex-col justify-center bg-white">
                     <div className="max-w-md w-full mx-auto">
-                        <div className="mb-10">
-                            <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome Back</h2>
-                            <p className="text-slate-500 font-medium">Enter your user credentials to access the dashboard.</p>
+                        <div className="mb-6 sm:mb-10 text-center md:text-left">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 leading-tight">Welcome Back</h2>
+                            <p className="text-slate-500 text-sm sm:font-medium">User Login</p>
                         </div>
 
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl flex items-center gap-3 text-sm border border-red-100 shadow-sm animate-pulse">
-                                <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500" />
+                            <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl flex items-center gap-3 text-sm border border-red-100">
+                                <AlertCircle className="w-5 h-5 text-red-500" />
                                 <p className="font-medium">{error}</p>
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Username or Email</label>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Username</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-orange-500 text-slate-400">
-                                        <Mail className="h-5 w-5" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        name="username"
-                                        value={formData.username}
-                                        onChange={handleChange}
-                                        required
-                                        className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-slate-400"
-                                        placeholder="Email or Username"
-                                    />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-orange-500" />
+                                    <input type="text" name="username" value={formData.username} onChange={handleChange} required
+                                        className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-orange-500 transition-all outline-none"
+                                        placeholder="Username" />
                                 </div>
                             </div>
-
                             <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-sm font-bold text-slate-700">Password</label>
-                                    <button type="button" onClick={() => navigate('/forgot-password')} className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors">Forgot password?</button>
-                                </div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5">Password</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-orange-500 text-slate-400">
-                                        <Lock className="h-5 w-5" />
-                                    </div>
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                        required
-                                        className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all text-slate-900 font-medium outline-none placeholder:text-slate-400"
-                                        placeholder="••••••••"
-                                    />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-orange-500" />
+                                    <input type="password" name="password" value={formData.password} onChange={handleChange} required
+                                        className="pl-12 w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-orange-500 transition-all outline-none"
+                                        placeholder="••••••••" />
                                 </div>
                             </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl shadow-[0_8px_20px_-6px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(249,115,22,0.6)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-70 disabled:hover:translate-y-0 disabled:active:scale-100 mt-4"
+                            <button type="submit" disabled={loading}
+                                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer mt-2"
                             >
-                                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <span>Sign In</span>}
+                                {loading ? <Loader className="animate-spin" /> : 'Sign In'}
                             </button>
                         </form>
 
-                        <div className="mt-10 pt-6 border-t border-slate-100 text-center text-sm font-medium text-slate-500 flex flex-col items-center gap-4">
-                            <p>
-                                Don't have an account?{' '}
-                                <button onClick={() => navigate('/register')} className="text-orange-600 hover:text-orange-700 font-bold transition-colors">
-                                    Register here
-                                </button>
-                            </p>
-                            <button onClick={() => navigate('/login')} className="text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1 cursor-pointer">
-                                ← Back to Role Selection
-                            </button>
+                        <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs sm:text-sm">
+                            <p className="text-slate-500 mb-4">No account? <button onClick={() => navigate('/register')} className="text-orange-600 font-bold">Register</button></p>
+                            <button onClick={() => navigate('/login')} className="text-slate-400 hover:text-slate-600 transition-colors uppercase font-bold tracking-wider">← Role Selection</button>
                         </div>
                     </div>
                 </div>

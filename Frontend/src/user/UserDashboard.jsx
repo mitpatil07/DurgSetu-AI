@@ -167,63 +167,59 @@ export default function UserDashboard() {
                             </button>
                         </div>
                     ) : (
-                        <div className="divide-y divide-slate-50">
+                        <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#F8F9FB]">
                             {reports.map(r => {
                                 const hasAdminUpdate = r.admin_notes || r.repair_image;
                                 const sevCls = SEVERITY_COLOR[r.severity] || 'bg-slate-100 text-slate-600 border-slate-200';
                                 return (
-                                    <div key={r.id} className="p-5 sm:p-6 hover:bg-slate-50/60 transition-colors group">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex-1 min-w-0">
-
-                                                {/* Title + badge */}
-                                                <div className="flex flex-wrap items-center gap-2 mb-3">
-                                                    <h3 className="font-black text-slate-900 text-base group-hover:text-orange-600 transition-colors">{r.fort_name}</h3>
-                                                    <Badge status={r.status} />
-                                                </div>
-
-                                                {/* Meta pills */}
-                                                <div className="flex flex-wrap gap-1.5 mb-3">
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">
-                                                        <MapPin className="w-3 h-3 text-slate-400" />{r.location}
-                                                    </span>
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">
-                                                        {r.damage_type}
-                                                    </span>
-                                                    <span className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-bold border ${sevCls}`}>
-                                                        {r.severity}
-                                                    </span>
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-400 rounded-lg text-xs font-semibold">
-                                                        <Calendar className="w-3 h-3" />
-                                                        {new Date(r.submitted_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                    </span>
-                                                </div>
-
-                                                {/* Admin response */}
-                                                {hasAdminUpdate && (
-                                                    <div className="mt-2 p-3.5 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-2.5">
-                                                        <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <p className="text-xs font-black text-emerald-700 mb-0.5">Admin Response</p>
-                                                            {r.admin_notes && <p className="text-xs text-emerald-800 leading-relaxed">{r.admin_notes}</p>}
-                                                            {r.repair_image && (
-                                                                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
-                                                                    <ImageIcon className="w-3 h-3" /> Repair photo attached — tap Details to view
-                                                                </p>
-                                                            )}
-                                                        </div>
+                                    <div key={r.id} className="bg-white p-5 rounded-3xl border border-slate-100 hover:border-orange-200 transition-all group flex flex-col justify-between shadow-sm hover:shadow-md">
+                                        <div>
+                                            {/* Header: Title + Button */}
+                                            <div className="flex items-start justify-between gap-3 mb-4">
+                                                <div className="min-w-0">
+                                                    <h3 className="font-black text-slate-900 text-lg group-hover:text-orange-600 transition-colors truncate">{r.fort_name}</h3>
+                                                    <div className="mt-1">
+                                                        <Badge status={r.status} />
                                                     </div>
-                                                )}
+                                                </div>
+                                                <button onClick={() => setSel(r)}
+                                                    className="flex-shrink-0 p-2 text-slate-400 hover:text-orange-600 bg-slate-50 hover:bg-orange-50 rounded-xl transition-all border border-transparent hover:border-orange-100 cursor-pointer">
+                                                    <ChevronRight className="w-5 h-5" />
+                                                </button>
                                             </div>
 
-                                            {/* Details button */}
-                                            <button onClick={() => setSel(r)}
-                                                className="flex-shrink-0 flex items-center gap-1 px-3.5 py-2.5 text-xs font-bold text-slate-500 hover:text-orange-600 bg-slate-100 hover:bg-orange-50 rounded-xl transition-all border border-transparent hover:border-orange-100 cursor-pointer group-hover:shadow-sm">
-                                                Details <ChevronRight className="w-3.5 h-3.5" />
-                                            </button>
+                                            {/* Tag Grid */}
+                                            <div className="grid grid-cols-2 gap-2 mb-4">
+                                                <div className="flex items-center gap-1 px-2 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-[10px] sm:text-xs font-bold border border-slate-100">
+                                                    <MapPin className="w-3 h-3 text-orange-400" /> <span className="truncate">{r.location}</span>
+                                                </div>
+                                                <div className="flex items-center justify-center px-2 py-1.5 bg-slate-50 text-slate-600 rounded-xl text-[10px] sm:text-xs font-bold border border-slate-100 truncate">
+                                                    {r.damage_type}
+                                                </div>
+                                                <div className={`flex items-center justify-center px-2 py-1.5 rounded-xl text-[10px] sm:text-xs font-black border ${sevCls}`}>
+                                                    {r.severity}
+                                                </div>
+                                                <div className="flex items-center justify-center gap-1 px-2 py-1.5 bg-slate-50 text-slate-400 rounded-xl text-[10px] sm:text-xs font-bold border border-slate-100">
+                                                    <Calendar className="w-3 h-3" />
+                                                    {new Date(r.submitted_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                                </div>
+                                            </div>
+
+                                            {/* Admin response snippet */}
+                                            {hasAdminUpdate && (
+                                                <div className="p-3 bg-emerald-50/50 border border-emerald-100/50 rounded-2xl flex items-start gap-2.5 mb-2">
+                                                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                                    <div className="min-w-0">
+                                                        <p className="text-[10px] font-black text-emerald-700 uppercase tracking-wider">Response</p>
+                                                        <p className="text-xs text-emerald-800 line-clamp-2 leading-snug">{r.admin_notes || 'Action taken'}</p>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
+
+                                        <button onClick={() => setSel(r)} className="w-full mt-2 py-2.5 text-xs font-bold text-slate-400 group-hover:text-orange-600 transition-colors flex items-center justify-center gap-1">
+                                            View Details
+                                        </button>
                                     </div>
                                 );
                             })}
@@ -283,7 +279,7 @@ export default function UserDashboard() {
                                     <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Your Photos</p>
                                     <div className="grid grid-cols-2 gap-2">
                                         {sel.images.map(img => (
-                                            <img key={img.id} src={img.image} alt="" className="w-full h-36 object-cover rounded-2xl border border-slate-200 shadow-sm" />
+                                            <img key={img.id} src={formatImageUrl(img.image)} alt="" className="w-full h-36 object-cover rounded-2xl border border-slate-200 shadow-sm" />
                                         ))}
                                     </div>
                                 </div>
