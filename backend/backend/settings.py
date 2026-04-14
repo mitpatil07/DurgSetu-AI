@@ -154,3 +154,6 @@ EMAIL_USE_TLS = True
 # -----------------------------
 NVIDIA_API_KEY = os.getenv('NVIDIA_API_KEY')
 ADMIN_REGISTRATION_SECRET = os.getenv('ADMIN_REGISTRATION_SECRET', 'durgsetu_admin_2026')
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
