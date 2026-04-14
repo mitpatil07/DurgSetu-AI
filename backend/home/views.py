@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, generics, permissions
 from rest_framework.decorators import action, api_view, permission_classes
+from django.db.models import Prefetch
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.authtoken.models import Token
@@ -9,7 +10,7 @@ from django.contrib.auth import authenticate
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 from django.db.models import Count, Avg
-from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage
+from .models import Fort, FortImage, StructuralAnalysis, FortDamageReport, ReportImage, PasswordResetToken
 from .serializers import FortSerializer, FortImageSerializer, StructuralAnalysisSerializer, FortDamageReportSerializer, ReportImageSerializer
 from .structural_detector import StructuralChangeDetector
 from .report_generator import generate_pdf_report
@@ -17,13 +18,15 @@ from datetime import datetime
 import logging
 import threading
 import requests
+import uuid
+import random
 
 logger = logging.getLogger(__name__) 
 
 def send_ai_report_email(analysis, user_notes, user_email):
     print(f"EMAIL DEBUG: Starting send_ai_report_email for email={user_email}")
-    if not user_email:
-        print("EMAIL DEBUG: No user_email provided, aborting.")
+    if not user_email or not user_email.strip():
+        print("EMAIL DEBUG: No user_email provided or email is empty, aborting.")
         return
         
     try:
@@ -198,6 +201,117 @@ class LoginView(generics.GenericAPIView):
             })
         else:
             return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ForgotPasswordView(generics.GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email', '').strip()
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        users = User.objects.filter(email__iexact=email)
+
+        if not users.exists():
+            return Response({'message': 'If an account with that email exists, an OTP has been sent.'}, status=status.HTTP_200_OK)
+
+        # Use first matching user
+        user = users.first()
+
+        # Generate 6-digit OTP
+        otp = str(random.randint(100000, 999999))
+
+        # Invalidate any previous token
+        PasswordResetToken.objects.filter(user=user).delete()
+        PasswordResetToken.objects.create(user=user, otp=otp, token=None)
+
+        display_name = user.username.split('_', 1)[-1] if '_' in user.username else user.username
+
+        try:
+            send_mail(
+                subject='DurgSetu AI — Your Password Reset OTP',
+                message=(
+                    f"Hello {display_name},\n\n"
+                    f"Your one-time password (OTP) for resetting your DurgSetu AI account password is:\n\n"
+                    f"    {otp}\n\n"
+                    f"This OTP is valid for 10 minutes. Do not share it with anyone.\n\n"
+                    f"If you did not request this, please ignore this email.\n\n"
+                    f"— DurgSetu AI Team"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"OTP email failed for {email}: {e}")
+            return Response({'error': 'Failed to send OTP. Please try again.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'message': 'OTP sent to your email address.'}, status=status.HTTP_200_OK)
+
+
+class VerifyOTPView(generics.GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email', '').strip()
+        otp = request.data.get('otp', '').strip()
+
+        if not email or not otp:
+            return Response({'error': 'Email and OTP are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        users = User.objects.filter(email__iexact=email)
+        if not users.exists():
+            return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = users.first()
+
+        try:
+            reset_entry = PasswordResetToken.objects.get(user=user, otp=otp)
+        except PasswordResetToken.DoesNotExist:
+            return Response({'error': 'Invalid OTP. Please check and try again.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if reset_entry.is_expired():
+            reset_entry.delete()
+            return Response({'error': 'OTP has expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # OTP valid — generate a short-lived reset token
+        reset_token = str(uuid.uuid4())
+        reset_entry.otp = None
+        reset_entry.token = reset_token
+        reset_entry.save()
+
+        return Response({'reset_token': reset_token}, status=status.HTTP_200_OK)
+
+
+class ResetPasswordView(generics.GenericAPIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        token = request.data.get('token', '').strip()
+        password = request.data.get('password', '').strip()
+
+        if not token or not password:
+            return Response({'error': 'Token and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(password) < 8:
+            return Response({'error': 'Password must be at least 8 characters'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            reset_entry = PasswordResetToken.objects.get(token=token)
+        except PasswordResetToken.DoesNotExist:
+            return Response({'error': 'Invalid or expired session. Please start over.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if reset_entry.is_expired():
+            reset_entry.delete()
+            return Response({'error': 'Session expired. Please request a new OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = reset_entry.user
+        user.set_password(password)
+        user.save()
+        reset_entry.delete()
+
+        return Response({'message': 'Password reset successful. You can now log in.'}, status=status.HTTP_200_OK)
 
 
 class FortViewSet(viewsets.ModelViewSet):
@@ -501,9 +615,10 @@ class StructuralAnalysisViewSet(viewsets.ModelViewSet):
             logger.info(f"Analysis complete: {results['risk_assessment']['level']} risk detected")
             
             # --- Auto-send Email upon scan generation ---
+            user_email_for_scan = request.user.email if request.user.is_authenticated and request.user.email else None
             threading.Thread(
                 target=send_ai_report_email, 
-                args=(analysis, "Automated scan completed on new image upload.", request.user.email if hasattr(request.user, 'email') else None)
+                args=(analysis, "Automated scan completed on new image upload.", user_email_for_scan)
             ).start()
             
             # Return full analysis
@@ -582,3 +697,26 @@ class AdminDamageReportViewSet(viewsets.ModelViewSet):
         report.save()
 
         return Response(self.get_serializer(report).data)
+
+class AdminProfileViewSet(viewsets.ViewSet):
+    permission_classes = [IsAdminUser]
+
+    @action(detail=False, methods=['get'])
+    def all(self, request):
+        users = User.objects.all().order_by('-date_joined')
+        data = []
+        for u in users:
+            # Check the role based on is_staff or the internal prefix logic
+            role = 'ADMIN' if u.is_staff else 'CITIZEN'
+            # Remove the prefix from the username for frontend display
+            display_name = u.username.split('_', 1)[-1] if '_' in u.username else u.username
+            
+            data.append({
+                'id': u.id,
+                'username': display_name,
+                'email': u.email,
+                'role': role,
+                'date_joined': u.date_joined,
+                'phone': '' # Could be fetched from profile if needed
+            })
+        return Response(data)

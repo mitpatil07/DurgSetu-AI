@@ -126,7 +126,7 @@ const Login = () => {
                             <div>
                                 <div className="flex justify-between items-center mb-2">
                                     <label className="block text-sm font-bold text-slate-700">Password</label>
-                                    <button type="button" className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors">Forgot password?</button>
+                                    <button type="button" onClick={() => navigate('/forgot-password')} className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors">Forgot password?</button>
                                 </div>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-orange-500 text-slate-400">

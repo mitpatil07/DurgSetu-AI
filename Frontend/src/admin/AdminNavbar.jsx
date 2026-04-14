@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 const NAV_LINKS = [
-    { icon: Home, label: 'Dashboard', path: '/admin' },
+    { icon: Home, label: 'Dashboard', path: '/admin/dashboard' },
     { icon: FileText, label: 'Reports', path: '/reports' },
     { icon: BarChart2, label: 'Analytics', path: '/analytics' },
     { icon: Users, label: 'Users', path: '/users' },
@@ -30,7 +30,7 @@ const AdminNavbar = ({ onRefresh, pendingCount = 0 }) => {
                     <div className="flex items-center h-16 gap-3">
 
                         {/* Brand */}
-                        <div className="flex items-center gap-2.5 flex-shrink-0 mr-4 cursor-pointer" onClick={() => navigate('/admin')}>
+                        <div className="flex items-center gap-2.5 flex-shrink-0 mr-4 cursor-pointer" onClick={() => navigate('/admin/dashboard')}>
                             <div className="relative w-9 h-9">
                                 <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl shadow-md shadow-orange-200" />
                                 <Shield className="absolute inset-0 m-auto w-[18px] h-[18px] text-white" />
@@ -46,7 +46,11 @@ const AdminNavbar = ({ onRefresh, pendingCount = 0 }) => {
                         {/* Nav links — desktop */}
                         <nav className="hidden md:flex items-center gap-0.5 flex-1 ml-4">
                             {NAV_LINKS.map(({ icon: Icon, label, path }) => {
-                                const active = path === activePath || (path === '/admin' && activePath === '/stage1') || (path === '/analytics' && activePath === '/stage2');
+                                const isDashboard = path === '/admin';
+                                const active = path === activePath ||
+                                    (isDashboard && (activePath === '/admin/dashboard' || activePath === '/stage1' || activePath === '/stage2')) ||
+                                    (path === '/reports' && activePath === '/admin/reports') ||
+                                    (path === '/analytics' && activePath === '/analytics');
                                 return (
                                     <button
                                         key={label}

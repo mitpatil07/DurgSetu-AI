@@ -14,7 +14,8 @@ import UserReport from './user/UserReport';
 import UserDashboard from './user/UserDashboard';
 import AdminSettings from './admin/AdminSettings';
 import AdminUserListing from './admin/AdminUserListing';
-
+import ForgotPassword from './components/Auth/ForgotPassword';
+import ResetPassword from './components/Auth/ResetPassword';
 
 const HomeRoute = () => {
   const token = localStorage.getItem("token");
@@ -54,7 +55,11 @@ const App = () => {
 
         <Route path="/admin/login" element={<AdminLogin />} />
 
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
         {/* User Routes */}
+
         <Route
           path="/report"
           element={
@@ -65,6 +70,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/user/dashboard"
           element={
@@ -147,7 +153,7 @@ const App = () => {
         {/* Redirects */}
         <Route path="/dashboard1" element={<Navigate to="/stage1" replace />} />
         <Route path="/dashboard2" element={<Navigate to="/stage2" replace />} />
-        <Route path="/analytics" element={<Navigate to="/stage2" replace />} />
+        <Route path="/analytics" element={<AdminDamageReports />} />
 
       </Routes>
     </BrowserRouter>
