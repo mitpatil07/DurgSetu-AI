@@ -1,10 +1,18 @@
 
 
-export const API_BASE =
-    import.meta.env.VITE_API_BASE ||
-    (window.location.hostname === "localhost"
+let base = import.meta.env.VITE_API_BASE || (
+    window.location.hostname === "localhost"
         ? "http://127.0.0.1:8000/api"
-        : "https://hardwood-bumper-lowest-remain.trycloudflare.com/api");
+        : "https://hardwood-bumper-lowest-remain.trycloudflare.com/api"
+);
+
+// Ensure the base URL ends with /api (without adding it twice)
+if (base && !base.endsWith('/api') && !base.endsWith('/api/')) {
+    base = base.endsWith('/') ? `${base}api` : `${base}/api`;
+}
+
+export const API_BASE = base;
+
 /**
  * A thin fetch wrapper that:
  *  - Prefixes every path with API_BASE
