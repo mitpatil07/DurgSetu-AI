@@ -28,3 +28,4 @@ tifffile>=2023.7.0
 
 requests>=2.31.0
 reportlab>=4.0.0
+whitenoise>=6.5.0

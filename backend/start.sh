@@ -5,6 +5,9 @@ set -o errexit
 echo "Running Migrations..."
 python manage.py migrate
 
+echo "Collecting Static Files..."
+python manage.py collectstatic --noinput
+
 echo "Setting up Admin User..."
 python setup_admin.py
 
