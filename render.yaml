@@ -25,4 +25,4 @@ services:
     staticPublishPath: Frontend/dist
     envVars:
       - key: VITE_API_BASE
-        value: https://durgsetu-backend.onrender.com/api
+        value: https://hardwood-bumper-lowest-remain.trycloudflare.com/api
