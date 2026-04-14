@@ -20,7 +20,13 @@ export async function apiFetch(path, options = {}) {
         ...options.headers,
     };
 
-    const response = await fetch(`${API_BASE}${path}`, {
+    // Ensure no double slashes and that path starts with a slash
+    const cleanBase = API_BASE.replace(/\/+$/, '');
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    const finalUrl = `${cleanBase}${cleanPath}`;
+
+    console.log("apiFetch calling URL:", finalUrl);
+    const response = await fetch(finalUrl, {
         ...options,
         headers,
     });
