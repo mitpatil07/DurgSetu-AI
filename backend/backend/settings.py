@@ -13,14 +13,10 @@ DEBUG = True  # keep True for now
 # -----------------------------
 # HOSTS / SECURITY
 # -----------------------------
-ALLOWED_HOSTS = [
-    "hardwood-bumper-lowest-remain.trycloudflare.com",
-    "127.0.0.1",
-    "localhost",
-]
+ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://hardwood-bumper-lowest-remain.trycloudflare.com",
+    "https://*.trycloudflare.com",
     "https://durgsetuai.vercel.app",
 ]
 
