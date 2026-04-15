@@ -25,4 +25,4 @@ services:
     staticPublishPath: Frontend/dist
     envVars:
       - key: VITE_API_BASE
-        value: https://hardwood-bumper-lowest-remain.trycloudflare.com/api
+        value: https://ecological-roommate-holdings-pays.trycloudflare.com/api
