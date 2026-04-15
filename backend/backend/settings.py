@@ -8,24 +8,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev')
 
-DEBUG = True  # keep True for now (important for debugging)
+DEBUG = True  # keep True for now
 
-# ✅ FIXED: Hardcoded (no env issues)
+# -----------------------------
+# HOSTS / SECURITY
+# -----------------------------
 ALLOWED_HOSTS = [
     "hardwood-bumper-lowest-remain.trycloudflare.com",
     "127.0.0.1",
     "localhost",
 ]
 
-# ✅ REQUIRED for Cloudflare + frontend
 CSRF_TRUSTED_ORIGINS = [
     "https://hardwood-bumper-lowest-remain.trycloudflare.com",
     "https://durgsetuai.vercel.app",
 ]
 
-# ✅ FIX PROXY (CRITICAL)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True   # ✅ FIXED (no comma)
+USE_X_FORWARDED_HOST = True
+
 
 # -----------------------------
 # APPS
@@ -37,30 +38,40 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
-    'api',
-    'corsheaders',
-    'home',
     'rest_framework.authtoken',
+
+    'corsheaders',
+    'api',
+    'home',
 ]
+
 
 # -----------------------------
 # MIDDLEWARE
 # -----------------------------
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # MUST BE FIRST
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'backend.urls'
 
+
+# -----------------------------
+# TEMPLATES
+# -----------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -78,21 +89,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# -----------------------------
-# CORS
-# -----------------------------
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "https://durgsetuai.vercel.app",
-]
 
-CORS_ALLOW_HEADERS = ['*']
-CORS_ALLOW_METHODS = ['*']
-CORS_ALLOW_ALL_ORIGINS = True
-
+# -----------------------------
+# CORS (FINAL FIX)
+# -----------------------------
+CORS_ALLOW_ALL_ORIGINS = True   # ✅ allow all (fixes your error)
 CORS_ALLOW_CREDENTIALS = True
+
+from corsheaders.defaults import default_headers, default_methods
+
+CORS_ALLOW_HEADERS = list(default_headers)
+CORS_ALLOW_METHODS = list(default_methods)
+
 
 # -----------------------------
 # DATABASE
@@ -106,6 +114,7 @@ DATABASES = {
     )
 }
 
+
 # -----------------------------
 # PASSWORD VALIDATION
 # -----------------------------
@@ -116,6 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+
 # -----------------------------
 # INTERNATIONAL
 # -----------------------------
@@ -124,17 +134,22 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+
+# -----------------------------
+# STATIC / MEDIA
+# -----------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# ✅ REQUIRED for serving static files in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_MANIFEST_STRICT = False
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # -----------------------------
 # REST FRAMEWORK
@@ -146,6 +161,7 @@ REST_FRAMEWORK = {
     ],
 }
 
+
 # -----------------------------
 # EMAIL
 # -----------------------------
@@ -153,6 +169,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
+
 
 # -----------------------------
 # CUSTOM
