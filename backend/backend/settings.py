@@ -91,9 +91,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 # -----------------------------
-# CORS (FINAL FIX)
+# CORS (FORCE FIX)
 # -----------------------------
-CORS_ALLOW_ALL_ORIGINS = True   # ✅ allow all (fixes your error)
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 from corsheaders.defaults import default_headers, default_methods
