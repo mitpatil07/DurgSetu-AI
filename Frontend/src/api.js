@@ -1,7 +1,11 @@
 
-export const API_BASE =
-    import.meta.env.VITE_API_BASE ||
-    "https://ecological-roommate-holdings-pays.trycloudflare.com/api";
+const base =
+  import.meta.env.VITE_API_BASE ||
+  (window.location.hostname === "localhost"
+    ? "http://127.0.0.1:8000/api"
+    : "https://ecological-roommate-holdings-pays.trycloudflare.com/api");
+
+export const API_BASE = base;
 
 export async function apiFetch(path, options = {}) {
     const token = localStorage.getItem('auth_token');
