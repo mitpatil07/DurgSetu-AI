@@ -3,9 +3,6 @@ export const API_BASE =
     import.meta.env.VITE_API_BASE ||
     "https://ecological-roommate-holdings-pays.trycloudflare.com/api";
 
-export { API_BASE };
-
-
 export async function apiFetch(path, options = {}) {
     const token = localStorage.getItem('auth_token');
 
