@@ -33,8 +33,8 @@ const AnimatedBackground = () => {
 
         class Node {
             constructor() {
-                this.ox = Math.random() * width;   // origin x
-                this.oy = Math.random() * height;  // origin y
+                this.ox = Math.random() * width;   
+                this.oy = Math.random() * height;
                 this.x = this.ox;
                 this.y = this.oy;
                 this.vx = (Math.random() - 0.5) * 0.4;

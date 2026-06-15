@@ -32,7 +32,7 @@ class StructuralChangeDetector:
             'grass_hsv_lower': [15, 30, 30],
             'grass_hsv_upper': [95, 255, 255],
         }
-        self.k_factor = 0.0  # Adaptive threshold offset updated via update_thresholds_from_history()
+        self.k_factor = 0.0 
         self.setup_cnn_model()
         self.setup_processing_tools()
         
@@ -49,7 +49,6 @@ class StructuralChangeDetector:
             full_model.maxpool,
             full_model.layer1,
             full_model.layer2
-            # Removed layer3 and layer4 to keep high spatial resolution
         )
         self.feature_extractor.eval()
         

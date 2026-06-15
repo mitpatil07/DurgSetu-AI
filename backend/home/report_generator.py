@@ -11,11 +11,11 @@ def generate_pdf_report(analysis, ai_notes):
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=40, bottomMargin=30)
     
     styles = getSampleStyleSheet()
-    # Define custom styles matching UI theme (Tailwind orange/gray)
-    theme_orange = colors.HexColor('#F97316') # Tailwind orange-500
-    theme_dark = colors.HexColor('#111827')   # Tailwind gray-900
-    theme_gray = colors.HexColor('#4B5563')   # Tailwind gray-600
-    bg_light = colors.HexColor('#FFF7ED')     # Tailwind orange-50
+    
+    theme_orange = colors.HexColor('#F97316') 
+    theme_dark = colors.HexColor('#111827')   
+    theme_gray = colors.HexColor('#4B5563')   
+    bg_light = colors.HexColor('#FFF7ED')     
     
     styles.add(ParagraphStyle(name='CustomTitle', fontName='Helvetica-Bold', fontSize=24, textColor=theme_orange, spaceAfter=8))
     styles.add(ParagraphStyle(name='SectionHeader', fontName='Helvetica-Bold', fontSize=16, textColor=theme_dark, spaceAfter=10, spaceBefore=20, borderPadding=6, backColor=bg_light))

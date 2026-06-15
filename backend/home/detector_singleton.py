@@ -15,5 +15,5 @@ try:
     from .structural_detector import StructuralChangeDetector
     detector_instance = StructuralChangeDetector()
     logger.info("StructuralChangeDetector loaded and cached at startup.")
-except Exception as exc:  # pragma: no cover
+except Exception as exc: 
     logger.warning("Could not pre-load StructuralChangeDetector: %s", exc)
