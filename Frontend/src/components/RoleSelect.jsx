@@ -17,11 +17,10 @@ const RoleSelect = () => {
                     <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-80 h-80 rounded-full bg-orange-400/20 blur-3xl" />
 
                     <div className="relative z-10 flex items-center gap-3 mb-4 sm:mb-10">
-                        <div className="bg-white/20 p-2 sm:p-3 rounded-xl sm:rounded-2xl backdrop-blur-sm border border-white/20 shadow-lg">
-                            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                        </div>
+                        <img src="/logo.png" alt="DurgSetu AI Logo" className="h-10 sm:h-14 w-auto object-contain drop-shadow-md" />
                         <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">DurgSetu AI</h1>
                     </div>
+
 
                     <div className="relative z-10 mb-4 md:mb-0">
                         <h2 className="text-2xl sm:text-4xl font-bold leading-tight mb-2 sm:mb-4">

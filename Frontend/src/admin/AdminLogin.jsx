@@ -54,9 +54,10 @@ const AdminLogin = () => {
                 <div className="w-full md:w-5/12 bg-gradient-to-br from-slate-800 to-slate-950 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-orange-500/10 blur-2xl"></div>
                     <div className="relative z-10 flex items-center gap-3 mb-4 sm:mb-10">
-                        <Shield className="w-6 h-6 sm:w-10 sm:h-10 text-orange-500" />
+                        <img src="/logo.png" alt="DurgSetu AI Logo" className="h-10 sm:h-14 w-auto object-contain drop-shadow-md" />
                         <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">DurgSetu <span className="text-orange-500">Admin</span></h1>
                     </div>
+
                     <div className="relative z-10 hidden sm:block">
                         <h2 className="text-2xl font-bold leading-tight mb-4">Command Center</h2>
                         <p className="text-slate-400 text-sm leading-relaxed mb-6">Internal access for structural analysis and preservation management.</p>

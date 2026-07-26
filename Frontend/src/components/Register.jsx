@@ -58,9 +58,10 @@ const Register = () => {
                 <div className="w-full md:w-5/12 bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 left-0 -ml-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-2xl" />
                     <div className="relative z-10 flex items-center gap-3 mb-4">
-                        <Shield className="w-6 h-6 sm:w-10 sm:h-10 text-white" />
+                        <img src="/logo.png" alt="DurgSetu AI Logo" className="h-10 sm:h-14 w-auto object-contain drop-shadow-md" />
                         <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">DurgSetu AI</h1>
                     </div>
+
                     <h2 className="relative z-10 text-2xl sm:text-4xl font-bold leading-tight mb-4 sm:block hidden">
                         Join the Conservation Effort.
                     </h2>

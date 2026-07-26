@@ -33,15 +33,13 @@ const AdminNavbar = ({ onRefresh, pendingCount = 0 }) => {
 
                         {/* Brand */}
                         <div className="flex items-center gap-2.5 flex-shrink-0 mr-4 cursor-pointer" onClick={() => navigate('/admin/dashboard')}>
-                            <div className="relative w-9 h-9">
-                                <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl shadow-md shadow-orange-200" />
-                                <Shield className="absolute inset-0 m-auto w-[18px] h-[18px] text-white" />
-                            </div>
+                            <img src="/logo.png" alt="DurgSetu AI Logo" className="h-9 w-auto object-contain drop-shadow-sm" />
                             <div className="hidden sm:block leading-tight">
                                 <p className="text-[13px] font-extrabold text-slate-900 tracking-tight">DurgSetu</p>
                                 <p className="text-[10px] text-slate-400 font-semibold tracking-wide">Admin Portal</p>
                             </div>
                         </div>
+
 
                         <span className="hidden md:block h-6 w-px bg-slate-200 flex-shrink-0" />
 

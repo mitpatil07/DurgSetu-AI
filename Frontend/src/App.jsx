@@ -17,22 +17,8 @@ import AdminUserListing from './admin/AdminUserListing';
 import ForgotPassword from './components/Auth/ForgotPassword';
 import ResetPassword from './components/Auth/ResetPassword';
 import AdminAnalytics from './components/Analytics/AdminAnalytics';
+import LandingPage from './pages/LandingPage';
 import { useAuth } from './context/AuthContext';
-
-const HomeRoute = () => {
-  const { token, isStaff } = useAuth();
-
-  if (!token) {
-    return <RoleSelect />;
-  }
-
-  if (isStaff) {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
-
-  return <Navigate to="/user/dashboard" replace />;
-};
-
 
 const UserOnlyRoute = ({ children }) => {
   const { token, isStaff } = useAuth();
@@ -48,10 +34,11 @@ const App = () => {
     <BrowserRouter>
       <Routes>
 
-        {/* ROOT: Role Selector if unauth, Dashboard if Admin */}
-        <Route path="/" element={<HomeRoute />} />
+        {/* ROOT: Landing Page showcasing DurgSetu AI platform */}
+        <Route path="/" element={<LandingPage />} />
 
         <Route path="/login" element={<RoleSelect />} />
+
 
         <Route path="/user/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

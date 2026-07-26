@@ -76,11 +76,10 @@ export default function UserDashboard() {
                         </button>
                         <div className="h-6 w-px bg-slate-200" />
                         <div className="flex items-center gap-3 pl-1">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                                <Shield className="w-5 h-5 text-white" />
-                            </div>
+                            <img src="/logo.png" alt="DurgSetu AI Logo" className="h-9 w-auto object-contain drop-shadow-sm" />
                             <span className="font-black text-slate-900 text-lg hidden sm:inline tracking-tight">DurgSetu User</span>
                         </div>
+
                     </div>
                     <div className="flex items-center gap-3 sm:gap-4">
                         <button onClick={() => navigate('/report')}
