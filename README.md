@@ -57,7 +57,46 @@ For automated deployment on Render:
    npm run dev
    ```
 
+## 🐳 Docker Setup & Containerization
+
+### 🛠️ Development Mode (With Hot Reloading)
+In development mode, source code folders are volume-mounted into containers so that edits in python or React code update instantly with live auto-reloading:
+
+```bash
+# Start Development Stack (Django Runserver + Vite HMR Dev Server)
+docker compose up --build
+```
+* **Frontend Dev Server**: [http://localhost:5173](http://localhost:5173) (Vite HMR)
+* **Backend API Server**: [http://localhost:8000/api](http://localhost:8000/api) (Django Runserver)
+* **Django Admin**: [http://localhost:8000/admin](http://localhost:8000/admin)
+
+### 🚀 Production Mode
+For testing production builds (Nginx + Gunicorn):
+
+```bash
+docker compose -f docker-compose.prod.yml up --build
+```
+* **Frontend App**: [http://localhost:80](http://localhost:80)
+* **Backend API**: [http://localhost:8000/api](http://localhost:8000/api)
+
+---
+
+## 🔄 GitHub Actions CI/CD Pipeline
+
+The project includes an automated GitHub Actions workflow defined in `.github/workflows/ci-cd.yml`:
+
+* **Backend CI**: Runs Django system checks and validates backend Docker builds on Python 3.10.
+* **Frontend CI**: Validates React/Vite builds and production Docker multi-stage image creation on Node 20.
+* **Integration Check**: Spins up the full Docker stack to perform live API health checks.
+* **Continuous Deployment**: Automatically triggers production deployment hooks when changes are pushed to `main`/`master`.
+
+---
+
 ## 📈 Recent Improvements
-*   **Modernized UI**: Completely refactored dashboards with a premium "Slate/Orange" aesthetic.
-*   **Analytical Power**: Integrated advanced metrics including 14-day reporting trends and contributor rankings.
-*   **Stability Fixed**: Resolved critical media resolution (404) and date-parsing bugs for real-time data reliability.
+* **Modernized UI**: Completely refactored dashboards with a premium "Slate/Orange" aesthetic.
+* **Analytical Power**: Integrated advanced metrics including 14-day reporting trends and contributor rankings.
+* **Stability Fixed**: Resolved critical media resolution (404) and date-parsing bugs for real-time data reliability.
+* **Development & Production Docker**: Support for live hot-reloading in dev and Nginx/Gunicorn in prod.
+* **GitHub Actions CI/CD**: Automated integration testing and build pipeline.
+
+

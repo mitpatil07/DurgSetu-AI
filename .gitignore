@@ -1,66 +1,82 @@
-```
-# ---- Python / Django ----
+# ==========================================
+# Python / Django
+# ==========================================
 __pycache__/
 *.py[cod]
-*.sqlite3
-*.log
-*.pot
-*.pyc
-*.pyo
-*.pyd
-*.db
-*.sqlite3
-*.mo
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist-py/
+build-py/
 
-# Django specific
-*.pot
-*.pyc
-*.pyo
-*.pyd
-*.db
+# Database & Storage
 *.sqlite3
-*.mo
-*.log
-local_settings.py
+*.db
 db.sqlite3
+backend/db.sqlite3
 media/
+backend/media/
 staticfiles/
+backend/staticfiles/
 static_root/
-*.env
 
-# Virtualenv
+# Environment Variables
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+!.env.docker.example
+!backend/.env.example
+!Frontend/.env.example
+
+# Virtual Environments
+env/
 venv/
 ENV/
-env/
 .venv/
+env*/
 
-# ---- Node / React ----
-node_modules/
-dist/
-build/
+# Logs & Debugging
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
-.pnp.*
-.pnp.js
 
-# ---- Vite / CRA caches ----
+# ==========================================
+# Node.js / React / Vite
+# ==========================================
+node_modules/
+Frontend/node_modules/
+dist/
+Frontend/dist/
+build/
 .vite/
+Frontend/.vite/
 .cache/
 coverage/
 
-# ---- IDE / OS ----
+# ==========================================
+# IDEs & Operating Systems
+# ==========================================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-.idea/
+
+# Editor Specific
 .vscode/
+!.vscode/extensions.json
+.idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
-# ---- Vercel / Deployment ----
+# Vercel / Deployment artifacts
 .vercel
-```
-# Username: durgsetu
-# Password: durgsetu123

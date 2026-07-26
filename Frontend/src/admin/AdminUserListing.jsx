@@ -66,9 +66,9 @@ const UserCard = ({ user }) => (
             </div>
         </div>
 
-        <button className="w-full py-2.5 bg-slate-50 hover:bg-orange-50 text-slate-600 hover:text-orange-600 rounded-xl text-xs font-bold transition-all border border-slate-100 hover:border-orange-100 flex items-center justify-center gap-2">
+        {/* <button className="w-full py-2.5 bg-slate-50 hover:bg-orange-50 text-slate-600 hover:text-orange-600 rounded-xl text-xs font-bold transition-all border border-slate-100 hover:border-orange-100 flex items-center justify-center gap-2">
             View Activity <ChevronRight className="w-3.5 h-3.5" />
-        </button>
+        </button> */}
     </div>
 );
 

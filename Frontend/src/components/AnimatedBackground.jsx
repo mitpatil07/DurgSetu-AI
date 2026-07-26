@@ -26,7 +26,7 @@ const AnimatedBackground = () => {
         window.addEventListener('mousemove', onMouseMove);
 
         // ── Node class with cursor repulsion ──────────────────────
-        const NODE_COUNT = 80;
+        const NODE_COUNT = 100;
         const CONNECT_DIST = 150;
         const MOUSE_REPEL_DIST = 120;
         const MOUSE_REPEL_FORCE = 3.5;

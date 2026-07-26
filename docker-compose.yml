@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Django Backend (Development Server with Auto-Reloading)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: durgsetu-backend-dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-dev-secret-key-change-in-production
+      - ALLOWED_HOSTS=*
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000
+    volumes:
+      # Mount local backend code directory for real-time live code updates / hot reloading
+      - ./backend:/app
+      - backend_media:/app/media
+
+  # React Frontend (Vite Dev Server with Hot Module Replacement / HMR)
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: durgsetu-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE=http://localhost:8000/api
+    volumes:
+      # Mount local Frontend code directory for instant Hot Module Replacement
+      - ./Frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  backend_media:

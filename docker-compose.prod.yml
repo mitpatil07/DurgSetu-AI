@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Production Django Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: durgsetu-backend-prod
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - SERVE_GUNICORN=true
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-production-secret-key-change-me}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+    volumes:
+      - media_data:/app/media
+      - db_data:/app/db_data
+
+  # Production React Frontend with Nginx
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE: /api
+    container_name: durgsetu-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  media_data:
+  db_data:
