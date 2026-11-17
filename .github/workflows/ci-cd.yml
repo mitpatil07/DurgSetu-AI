@@ -35,9 +35,12 @@ jobs:
           pip install -r backend/requirements.txt
 
       - name: Django Project System Check
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: "True"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,api.durgsetuai.online"
         run: |
           python backend/manage.py check
-
       - name: Build Backend Docker Image
         run: |
           docker build -t durgsetu-backend:latest ./backend
