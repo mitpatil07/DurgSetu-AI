@@ -1,39 +1,52 @@
-version: '3.8'
 
 services:
-  # Production Django Backend
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: durgsetu-backend-prod
     restart: always
-    ports:
-      - "8000:8000"
+    env_file:
+      - .env
     environment:
-      - DEBUG=False
-      - SERVE_GUNICORN=true
-      - SECRET_KEY=${SECRET_KEY:-django-insecure-production-secret-key-change-me}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      DEBUG: "False"
+      SERVE_GUNICORN: "true"
+      PORT: "8000"
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "127.0.0.1:8000:8000"
     volumes:
       - media_data:/app/media
-      - db_data:/app/db_data
-
-  # Production React Frontend with Nginx
-  frontend:
-    build:
-      context: ./Frontend
-      dockerfile: Dockerfile.prod
-      args:
-        VITE_API_BASE: /api
-    container_name: durgsetu-frontend-prod
-    restart: always
-    ports:
-      - "80:80"
+      - static_data:/app/staticfiles
     depends_on:
-      - backend
+      db:
+        condition: service_healthy
+    networks:
+      - durgsetu-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: durgsetu-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - durgsetu-network
 
 volumes:
+  postgres_data:
   media_data:
-  db_data:
+  static_data:
+
+networks:
+  durgsetu-network:
+    driver: bridge
