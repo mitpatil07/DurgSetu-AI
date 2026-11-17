@@ -3,7 +3,7 @@ const base =
   import.meta.env.VITE_API_BASE ||
   (window.location.hostname === "localhost"
     ? "http://127.0.0.1:8000/api"
-    : "https://ecological-roommate-holdings-pays.trycloudflare.com/api");
+    : "https://api.durgsetuai.online/api");
 
 export const API_BASE = base;
 
